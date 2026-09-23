@@ -49,11 +49,20 @@ import kotlinx.coroutines.launch
 
 // ─── Gradiente de la pestaña HIIT ───────────────────────────────────────────
 
-// Agua marina vibrante que desciende a azul océano y noche profundo: afín a
-// la paleta MoveInterval, pero vivo, deportivo y con personalidad propia.
-private val HiitHomeGradient = AquaOceanGradient
+// Verde de marca que desciende a verde profundo y cierra en turquesa oscuro:
+// el mismo lenguaje cromático con el que arranca la sesión (fase de
+// preparación) para que la pantalla principal anuncie el color del entrenamiento.
+private val HiitHomeGradient = Brush.verticalGradient(
+    listOf(Green500, Green700, Aqua700),
+)
 
-private val MintAccent = Mint300
+private val GreenAccent = Green300
+
+// Degradado del botón de inicio: verde de marca → menta, el acento más
+// luminoso de la paleta para que la acción principal destaque sobre el fondo.
+private val StartButtonGradient = Brush.horizontalGradient(
+    listOf(Green500, Mint400),
+)
 
 /** Pestaña HIIT: pantalla inmersiva con el resumen de la sesión y el botón de inicio. */
 @Composable
@@ -71,7 +80,7 @@ fun HiitHomeScreen(
             .background(HiitHomeGradient),
     ) {
         // Orbes decorativos en deriva para profundidad visual
-        FloatingOrbs(accent = MintAccent)
+        FloatingOrbs(accent = GreenAccent)
 
         Column(
             modifier = Modifier
@@ -91,7 +100,7 @@ fun HiitHomeScreen(
                     .clip(RoundedCornerShape(2.dp))
                     .background(
                         Brush.horizontalGradient(
-                            listOf(MintAccent, Color.White.copy(alpha = 0.5f)),
+                            listOf(GreenAccent, Color.White.copy(alpha = 0.5f)),
                         ),
                     ),
             )
@@ -136,7 +145,7 @@ fun HiitHomeScreen(
                                 .clip(RoundedCornerShape(3.dp))
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(MintAccent, Color.White.copy(alpha = 0.5f)),
+                                        listOf(GreenAccent, Color.White.copy(alpha = 0.5f)),
                                     ),
                                 ),
                         )
@@ -232,7 +241,7 @@ fun HiitHomeScreen(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(Color.White.copy(alpha = 0.15f))
+                    .background(Green100.copy(alpha = 0.18f))
                     .clickable(onClick = onConfig)
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -261,37 +270,43 @@ fun HiitHomeScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
-                onClick = {
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    scope.launch {
-                        HiitSession.start(
-                            context,
-                            settings.hiitWalkSeconds,
-                            settings.hiitRunSeconds,
-                            settings.hiitRounds,
-                            settings.hiitWarmupSeconds,
-                            settings.hiitCooldownSeconds,
-                        )
-                    }
-                },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(StartButtonGradient)
                     .border(
                         1.dp,
-                        Color.White.copy(alpha = 0.2f),
+                        Color.White.copy(alpha = 0.25f),
                         RoundedCornerShape(16.dp),
                     ),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.15f),
-                    contentColor = Color.White,
-                ),
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.hiit_start), fontWeight = FontWeight.ExtraBold)
+                Button(
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        scope.launch {
+                            HiitSession.start(
+                                context,
+                                settings.hiitWalkSeconds,
+                                settings.hiitRunSeconds,
+                                settings.hiitRounds,
+                                settings.hiitWarmupSeconds,
+                                settings.hiitCooldownSeconds,
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Green900,
+                    ),
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.hiit_start), fontWeight = FontWeight.ExtraBold)
+                }
             }
 
             if (settings.hiitWarmupSeconds > 0) {
