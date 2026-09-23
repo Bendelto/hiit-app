@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">MoveInterval</string>
+    <string name="channel_name">Avisos HIIT</string>
+    <string name="channel_description">Avisos das fases e do fim da sessão HIIT</string>
+    <string name="notification_title">HIIT</string>
+
+    <!-- Comuns -->
+    <string name="common_accept">ACEITAR</string>
+    <string name="common_close">Fechar</string>
+    <string name="common_back">Voltar</string>
+    <string name="common_grant">Conceder</string>
+    <string name="common_save">Salvar</string>
+    <string name="common_saved">Salvo</string>
+    <string name="common_saved_check">✓ Salvo</string>
+    <string name="common_disabled">Desativado</string>
+    <string name="common_choose_unit">Escolher %1$s</string>
+    <string name="common_ok">OK</string>
+
+    <!-- Unidades e durações curtas -->
+    <string name="unit_min" translatable="false">min</string>
+    <string name="unit_s" translatable="false">s</string>
+    <string name="unit_h" translatable="false">h</string>
+    <string name="unit_rounds">rodadas</string>
+    <string name="common_duration_min_sec">%1$d min %2$d s</string>
+    <string name="common_duration_min">%1$d min</string>
+    <string name="common_duration_sec">%1$d s</string>
+
+    <!-- HIIT: início e configuração -->
+    <string name="hiit_title">HIIT</string>
+    <string name="hiit_warmup">Aquecimento</string>
+    <string name="hiit_high_intensity">Alta intensidade</string>
+    <string name="hiit_low_intensity">Baixa intensidade</string>
+    <string name="hiit_rounds">Repetições</string>
+    <string name="hiit_cooldown">Desaquecimento</string>
+    <string name="hiit_rounds_value">%1$d rodadas</string>
+    <string name="hiit_rounds_infinite">Até me cansar</string>
+    <string name="hiit_rounds_fixed">Número fixo</string>
+    <string name="hiit_infinite_hint">A sessão não termina sozinha: você a para quando quiser.</string>
+    <string name="hiit_round_count">Rodada %1$d</string>
+    <string name="hiit_live_steps">%1$s passos · %2$s</string>
+    <string name="hiit_stat_steps">Passos</string>
+    <string name="hiit_stat_distance">Distância</string>
+    <string name="hiit_session_duration_section">Duração da sessão</string>
+    <string name="hiit_session_format">%1$s  →  %2$s  ×  %3$d rodadas</string>
+    <string name="hiit_session_infinite">%1$s  →  %2$s  ·  Até me cansar</string>
+    <string name="hiit_total_format">Total: %1$s (com aquecimento e desaquecimento)</string>
+    <string name="hiit_total_infinite">Sem duração fixa: você decide quando parar</string>
+    <string name="hiit_sounds_title">Sons de contagem regressiva</string>
+    <string name="hiit_sounds_subtitle">Bipes 3, 2, 1 antes de cada mudança e tons por fase</string>
+    <string name="hiit_voice_title">Guia por voz</string>
+    <string name="hiit_voice_subtitle">O app diz "caminhe" e "corra" em voz alta</string>
+    <string name="hiit_home_subtitle">Treine por intervalos com guia de voz</string>
+    <string name="hiit_config_subtitle">Ajuste sua sessão de intervalos</string>
+    <string name="hiit_adjust_session">Ajustar sessão</string>
+    <string name="hiit_ready">Preparado?</string>
+    <string name="hiit_your_session">Sua sessão</string>
+    <string name="hiit_summary_format">%1$s  →  %2$s  ×  %3$d</string>
+    <string name="hiit_summary_infinite">%1$s  →  %2$s  ×  ∞</string>
+    <string name="hiit_summary_caption">Baixa intensidade  →  Alta intensidade  ×  rodadas</string>
+    <string name="hiit_total_duration">Duração total: %1$s</string>
+    <string name="hiit_start">Iniciar Sessão HIIT</string>
+    <string name="hiit_warmup_note">Inclui %1$d segundos de preparação com contagem regressiva</string>
+
+    <!-- HIIT: cronômetro e sessão concluída -->
+    <string name="hiit_workout_label">TREINO HIIT</string>
+    <string name="hiit_last_phase">Última fase</string>
+    <string name="hiit_round_of">Rodada %1$d de %2$d</string>
+    <string name="hiit_phase_paused">PAUSADO</string>
+    <string name="hiit_phase_prep">PREPARE-SE</string>
+    <string name="hiit_phase_cooldown">DESAQUECIMENTO</string>
+    <string name="hiit_phase_run">CORRA</string>
+    <string name="hiit_phase_walk">CAMINHE</string>
+    <string name="hiit_sub_paused">Em pausa</string>
+    <string name="hiit_sub_prep">Prestes a começar</string>
+    <string name="hiit_sub_cooldown">Desaquecendo</string>
+    <string name="hiit_sub_run">Correndo</string>
+    <string name="hiit_sub_walk">Caminhando</string>
+    <string name="hiit_resume">Retomar</string>
+    <string name="hiit_pause">Pausar</string>
+    <string name="hiit_finish">Encerrar Sessão</string>
+    <string name="hiit_completed_title">Sessão concluída!</string>
+    <string name="hiit_completed_subtitle">Bom trabalho. Seu corpo agradece.</string>
+    <string name="hiit_stat_rounds">Rodadas</string>
+    <string name="hiit_stat_intervals">Intervalos</string>
+    <string name="hiit_stat_total_time">Tempo total</string>
+    <string name="hiit_stat_total_sessions">Sessões totais</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_page1_stat" translatable="false">HIIT</string>
+    <string name="onboarding_page1_title">Bem-vindo ao MoveInterval</string>
+    <string name="onboarding_page1_body">Seu cronômetro de intervalos de alta intensidade: alterne esforços curtos e descanso com guia por voz, sem precisar olhar o celular.</string>
+    <string name="onboarding_page2_stat" translatable="false">×8</string>
+    <string name="onboarding_page2_title">Configure sua sessão</string>
+    <string name="onboarding_page2_body">Ajuste o tempo de esforço e de descanso, o número de rodadas, além de aquecimento e desaquecimento. Bipes e avisos de voz guiam cada mudança de fase.</string>
+    <string name="onboarding_page3_stat" translatable="false">🏁</string>
+    <string name="onboarding_page3_title">Permissões e a treinar</string>
+    <string name="onboarding_page3_body">Conceda notificações, alarmes exatos e reconhecimento de atividade para que o app avise na hora certa. Depois toque em iniciar… e treine!</string>
+    <string name="onboarding_skip">Pular</string>
+    <string name="onboarding_next">Próximo</string>
+    <string name="onboarding_start">Começar</string>
+
+    <!-- Estatísticas -->
+    <string name="stats_title">Progresso</string>
+    <string name="stats_subtitle">Sua atividade e constância</string>
+    <string name="stats_last_7_days">Últimos 7 dias</string>
+    <string name="stats_sessions_per_day">Sessões HIIT por dia</string>
+    <string name="stats_current_streak">SEQUÊNCIA ATUAL</string>
+    <string name="stats_streak_day_one">Dia seguido</string>
+    <string name="stats_streak_day_other">Dias seguidos</string>
+    <string name="stats_streak_msg_7">Imparável! Seu corpo agradece.</string>
+    <string name="stats_streak_msg_3">Bom ritmo, continue assim.</string>
+    <string name="stats_streak_msg_1">Bom começo. Amanhã de novo.</string>
+    <string name="stats_streak_msg_0">Treine hoje para começar sua sequência.</string>
+    <string name="stats_hiit_sessions">SESSÕES HIIT</string>
+    <string name="stats_hiit_sessions_desc">Sessões HIIT concluídas desde que você instalou o app.</string>
+
+    <!-- Ajustes e permissões -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_subtitle">Sessão e permissões</string>
+    <string name="settings_hiit_row">Sessão HIIT</string>
+    <string name="settings_permissions">Permissões</string>
+    <string name="settings_permissions_desc">O MoveInterval precisa destas permissões para programar suas sessões e avisar na hora certa.</string>
+    <string name="settings_perm_notifications">Notificações</string>
+    <string name="settings_perm_notifications_desc">Para mostrar o aviso na tela</string>
+    <string name="settings_perm_exact_alarms">Alarmes exatos</string>
+    <string name="settings_perm_exact_alarms_desc">Para que o alarme toque na hora exata</string>
+    <string name="settings_perm_full_screen">Tela cheia</string>
+    <string name="settings_perm_full_screen_desc">Para que o aviso apareça sobre outros apps</string>
+    <string name="settings_all_granted">Todas as permissões concedidas</string>
+    <string name="settings_intro_section">Introdução</string>
+    <string name="settings_intro_desc">Veja novamente a apresentação do app da primeira vez.</string>
+    <string name="settings_show_intro">Ver a introdução de novo</string>
+
+    <!-- Notificações da camada de alarmes (sessão HIIT) -->
+    <string name="notif_hiit_channel_name">Sessão HIIT em andamento</string>
+    <string name="notif_hiit_channel_description">Cronômetro persistente e controles da sessão HIIT</string>
+    <string name="notif_hiit_ongoing">HIIT em andamento</string>
+    <string name="notif_hiit_paused">HIIT · Em pausa</string>
+    <string name="notif_hiit_prep">HIIT · Prepare-se</string>
+    <string name="notif_hiit_run">HIIT · Corra!</string>
+    <string name="notif_hiit_cooldown">HIIT · Desaquecimento</string>
+    <string name="notif_hiit_walk">HIIT · Caminhe</string>
+    <string name="notif_hiit_session_running">Sessão em andamento</string>
+    <string name="notif_hiit_round_line">Rodada %1$d de %2$d · %3$s restantes</string>
+    <string name="notif_action_resume">Retomar</string>
+    <string name="notif_action_pause">Pausar</string>
+    <string name="notif_action_stop">Encerrar</string>
+
+    <!-- Textos falados pelo TTS -->
+    <string name="tts_hiit_finished">Sessão concluída! Bom trabalho.</string>
+    <string name="tts_hiit_start">Prepare-se. A sessão começa em %1$s.</string>
+    <string name="tts_hiit_cue_walk">Caminhe por %1$s</string>
+    <string name="tts_hiit_cue_run">Corra por %1$s</string>
+    <string name="tts_hiit_prep">Prepare-se</string>
+    <string name="tts_hiit_cooldown_cue">Desaquecimento. Vá reduzindo o ritmo.</string>
+    <string name="tts_duration_minute_one">1 minuto</string>
+    <string name="tts_duration_minutes">%1$d minutos</string>
+    <string name="tts_duration_second_one">1 segundo</string>
+    <string name="tts_duration_seconds">%1$d segundos</string>
+    <string name="tts_duration_zero">0 segundos</string>
+    <string name="tts_duration_joiner">" e "</string>
+
+    <!-- Aviso de permissões -->
+    <string name="perm_banner_title">Permissões desativadas</string>
+    <string name="perm_banner_message">Ative as notificações, o reconhecimento de atividade e os alarmes exatos para que seus avisos toquem na hora.</string>
+    <string name="perm_banner_settings">Abrir ajustes</string>
+</resources>

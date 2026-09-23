@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notificaciones de la capa de alarmas (sesión HIIT) -->
+    <string name="notif_hiit_channel_name">Sesión HIIT en curso</string>
+    <string name="notif_hiit_channel_description">Cronómetro persistente y controles de la sesión HIIT</string>
+    <string name="notif_hiit_ongoing">HIIT en curso</string>
+    <string name="notif_hiit_paused">HIIT · Pausado</string>
+    <string name="notif_hiit_prep">HIIT · Prepárate</string>
+    <string name="notif_hiit_run">HIIT · ¡Corre!</string>
+    <string name="notif_hiit_cooldown">HIIT · Enfriamiento</string>
+    <string name="notif_hiit_walk">HIIT · Camina</string>
+    <string name="notif_hiit_session_running">Sesión en curso</string>
+    <string name="notif_hiit_round_line">Ronda %1$d de %2$d · %3$s restantes</string>
+    <string name="notif_action_resume">Reanudar</string>
+    <string name="notif_action_pause">Pausar</string>
+    <string name="notif_action_stop">Terminar</string>
+
+    <!-- Textos hablados por el TTS -->
+    <string name="tts_hiit_finished">¡Sesión terminada! Buen trabajo.</string>
+    <string name="tts_hiit_start">Prepárate. La sesión empieza en %1$s.</string>
+    <string name="tts_hiit_cue_walk">Camina durante %1$s</string>
+    <string name="tts_hiit_cue_run">Corre durante %1$s</string>
+    <string name="tts_hiit_prep">Prepárate</string>
+    <string name="tts_hiit_cooldown_cue">Enfriamiento. Ve reduciendo el ritmo.</string>
+    <string name="tts_duration_minute_one">1 minuto</string>
+    <string name="tts_duration_minutes">%1$d minutos</string>
+    <string name="tts_duration_second_one">1 segundo</string>
+    <string name="tts_duration_seconds">%1$d segundos</string>
+    <string name="tts_duration_zero">0 segundos</string>
+    <string name="tts_duration_joiner">" con "</string>
+</resources>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MoveInterval</string>
+    <string name="channel_name">Avisos HIIT</string>
+    <string name="channel_description">Avisos de las fases y del fin de la sesión HIIT</string>
+    <string name="notification_title">HIIT</string>
+
+    <!-- Comunes -->
+    <string name="common_accept">ACEPTAR</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_back">Volver</string>
+    <string name="common_grant">Conceder</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_saved">Guardado</string>
+    <string name="common_saved_check">✓ Guardado</string>
+    <string name="common_disabled">Desactivado</string>
+    <string name="common_choose_unit">Elegir %1$s</string>
+    <string name="common_ok">OK</string>
+
+    <!-- Unidades y duraciones cortas -->
+    <string name="unit_min">min</string>
+    <string name="unit_s">s</string>
+    <string name="unit_h">h</string>
+    <string name="unit_rounds">rondas</string>
+    <string name="common_duration_min_sec">%1$d min %2$d s</string>
+    <string name="common_duration_min">%1$d min</string>
+    <string name="common_duration_sec">%1$d s</string>
+
+    <!-- HIIT: inicio y configuración -->
+    <string name="hiit_title">HIIT</string>
+    <string name="hiit_warmup">Calentamiento</string>
+    <string name="hiit_high_intensity">Alta intensidad</string>
+    <string name="hiit_low_intensity">Baja intensidad</string>
+    <string name="hiit_rounds">Repeticiones</string>
+    <string name="hiit_cooldown">Enfriamiento</string>
+    <string name="hiit_rounds_value">%1$d rondas</string>
+    <string name="hiit_rounds_infinite">Hasta agotarme</string>
+    <string name="hiit_rounds_fixed">Número fijo</string>
+    <string name="hiit_infinite_hint">La sesión no termina sola: la detienes tú cuando quieras.</string>
+    <string name="hiit_round_count">Ronda %1$d</string>
+    <string name="hiit_live_steps">%1$s pasos · %2$s</string>
+    <string name="hiit_stat_steps">Pasos</string>
+    <string name="hiit_stat_distance">Distancia</string>
+    <string name="hiit_session_duration_section">Duración de la sesión</string>
+    <string name="hiit_session_format">%1$s  →  %2$s  ×  %3$d rondas</string>
+    <string name="hiit_session_infinite">%1$s  →  %2$s  ·  Hasta agotarme</string>
+    <string name="hiit_total_format">Total: %1$s (con calentamiento y enfriamiento)</string>
+    <string name="hiit_total_infinite">Sin duración fija: tú decides cuándo parar</string>
+    <string name="hiit_sounds_title">Sonidos de cuenta regresiva</string>
+    <string name="hiit_sounds_subtitle">Pitidos 3, 2, 1 antes de cada cambio y tonos por fase</string>
+    <string name="hiit_voice_title">Guía de voz</string>
+    <string name="hiit_voice_subtitle">La app dice «camina» y «corre» en voz alta</string>
+    <string name="hiit_home_subtitle">Entrena por intervalos con guía de voz</string>
+    <string name="hiit_config_subtitle">Ajusta tu sesión de intervalos</string>
+    <string name="hiit_adjust_session">Ajustar sesión</string>
+    <string name="hiit_ready">¿Listo?</string>
+    <string name="hiit_your_session">Tu sesión</string>
+    <string name="hiit_summary_format">%1$s  →  %2$s  ×  %3$d</string>
+    <string name="hiit_summary_infinite">%1$s  →  %2$s  ×  ∞</string>
+    <string name="hiit_summary_caption">Baja intensidad  →  Alta intensidad  ×  rondas</string>
+    <string name="hiit_total_duration">Duración total: %1$s</string>
+    <string name="hiit_start">Iniciar Sesión HIIT</string>
+    <string name="hiit_warmup_note">Incluye %1$d segundos de preparación con cuenta regresiva</string>
+
+    <!-- HIIT: cronómetro y sesión completada -->
+    <string name="hiit_workout_label">ENTRENAMIENTO HIIT</string>
+    <string name="hiit_last_phase">Última fase</string>
+    <string name="hiit_round_of">Ronda %1$d de %2$d</string>
+    <string name="hiit_phase_paused">PAUSADO</string>
+    <string name="hiit_phase_prep">PREPÁRATE</string>
+    <string name="hiit_phase_cooldown">ENFRIAMIENTO</string>
+    <string name="hiit_phase_run">CORRE</string>
+    <string name="hiit_phase_walk">CAMINA</string>
+    <string name="hiit_sub_paused">En pausa</string>
+    <string name="hiit_sub_prep">Para empezar</string>
+    <string name="hiit_sub_cooldown">Enfriando</string>
+    <string name="hiit_sub_run">Corriendo</string>
+    <string name="hiit_sub_walk">Caminando</string>
+    <string name="hiit_resume">Reanudar</string>
+    <string name="hiit_pause">Pausar</string>
+    <string name="hiit_finish">Terminar Sesión</string>
+    <string name="hiit_completed_title">¡Sesión completada!</string>
+    <string name="hiit_completed_subtitle">Buen trabajo. Tu cuerpo te lo agradece.</string>
+    <string name="hiit_stat_rounds">Rondas</string>
+    <string name="hiit_stat_intervals">Intervalos</string>
+    <string name="hiit_stat_total_time">Tiempo total</string>
+    <string name="hiit_stat_total_sessions">Sesiones totales</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_page1_stat" translatable="false">HIIT</string>
+    <string name="onboarding_page1_title">Bienvenido a MoveInterval</string>
+    <string name="onboarding_page1_body">Tu temporizador de intervalos de alta intensidad: alterna esfuerzos cortos y descansos guiados por voz, sin tener que mirar el móvil.</string>
+    <string name="onboarding_page2_stat" translatable="false">×8</string>
+    <string name="onboarding_page2_title">Configura tu sesión</string>
+    <string name="onboarding_page2_body">Ajusta el tiempo de trabajo y de descanso, el número de rondas, y el calentamiento y enfriamiento. Los pitidos y la voz te guían en cada cambio de fase.</string>
+    <string name="onboarding_page3_stat" translatable="false">🏁</string>
+    <string name="onboarding_page3_title">Permisos y a entrenar</string>
+    <string name="onboarding_page3_body">Concede notificaciones, alarmas exactas y reconocimiento de actividad para que la app te avise a tiempo. Después pulsa iniciar… ¡y a entrenar!</string>
+    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_start">Empezar</string>
+
+    <!-- Estadísticas -->
+    <string name="stats_title">Progreso</string>
+    <string name="stats_subtitle">Tu actividad y constancia</string>
+    <string name="stats_last_7_days">Últimos 7 días</string>
+    <string name="stats_sessions_per_day">Sesiones HIIT por día</string>
+    <string name="stats_current_streak">RACHA ACTUAL</string>
+    <string name="stats_streak_day_one">Día seguido</string>
+    <string name="stats_streak_day_other">Días seguidos</string>
+    <string name="stats_streak_msg_7">¡Imparable! Tu cuerpo te lo agradece.</string>
+    <string name="stats_streak_msg_3">Buen ritmo, sigue así.</string>
+    <string name="stats_streak_msg_1">Buen comienzo. Mañana otra vez.</string>
+    <string name="stats_streak_msg_0">Entrena hoy para empezar tu racha.</string>
+    <string name="stats_hiit_sessions">SESIONES HIIT</string>
+    <string name="stats_hiit_sessions_desc">Sesiones HIIT completadas desde que instalaste la app.</string>
+
+    <!-- Ajustes y permisos -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_subtitle">Sesión y permisos</string>
+    <string name="settings_hiit_row">Sesión HIIT</string>
+    <string name="settings_permissions">Permisos</string>
+    <string name="settings_permissions_desc">MoveInterval necesita estos permisos para programar tus sesiones y avisarte a tiempo.</string>
+    <string name="settings_perm_notifications">Notificaciones</string>
+    <string name="settings_perm_notifications_desc">Para mostrar el aviso en pantalla</string>
+    <string name="settings_perm_exact_alarms">Alarmas exactas</string>
+    <string name="settings_perm_exact_alarms_desc">Para que la alarma suene a la hora exacta</string>
+    <string name="settings_perm_full_screen">Pantalla completa</string>
+    <string name="settings_perm_full_screen_desc">Para que el aviso aparezca sobre otras apps</string>
+    <string name="settings_all_granted">Todos los permisos concedidos</string>
+    <string name="settings_intro_section">Introducción</string>
+    <string name="settings_intro_desc">Vuelve a ver la presentación de la app de la primera vez.</string>
+    <string name="settings_show_intro">Ver la introducción de nuevo</string>
+
+    <!-- Aviso de permisos -->
+    <string name="perm_banner_title">Permisos desactivados</string>
+    <string name="perm_banner_message">Activa las notificaciones, el reconocimiento de actividad y las alarmas exactas para que tus avisos suenen a tiempo.</string>
+    <string name="perm_banner_settings">Abrir ajustes</string>
+</resources>
