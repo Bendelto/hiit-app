@@ -124,7 +124,9 @@ object HiitEngine {
         settings: com.example.hiit.data.AppSettings,
     ) {
         val finishMessage = HiitSession.finishMessage(context)
-        Notifier.show(context, finishMessage)
+        // El aviso final se queda un poco más: el usuario puede haber dejado
+        // el teléfono apartado al terminar la sesión
+        Notifier.show(context, finishMessage, timeoutMs = 8_000)
         if (settings.hiitSounds) SoundPlayer.playFinishTone()
         if (settings.hiitVoice) HiitSession.speak(context, finishMessage)
         val repo = SettingsRepository(context)

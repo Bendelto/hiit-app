@@ -60,10 +60,13 @@
     <string name="hiit_config_subtitle">Ajuste sua sessão de intervalos</string>
     <string name="hiit_adjust_session">Ajustar sessão</string>
     <string name="hiit_ready">Preparado?</string>
+    <string name="hiit_ready_subtitle">Hora de se mover</string>
+    <string name="hiit_total_label">Duração</string>
+    <string name="hiit_rounds_label">Rodadas</string>
     <string name="hiit_your_session">Sua sessão</string>
     <string name="hiit_summary_format">%1$s  →  %2$s  ×  %3$d</string>
     <string name="hiit_summary_infinite">%1$s  →  %2$s  ×  ∞</string>
-    <string name="hiit_summary_caption">Baixa intensidade  →  Alta intensidade  ×  rodadas</string>
+    <string name="hiit_summary_caption">Baixa intensidade  →  Alta intensidade</string>
     <string name="hiit_total_duration">Duração total: %1$s</string>
     <string name="hiit_start">Iniciar Sessão HIIT</string>
     <string name="hiit_warmup_note">Inclui %1$d segundos de preparação com contagem regressiva</string>

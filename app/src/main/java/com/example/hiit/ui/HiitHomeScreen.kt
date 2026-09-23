@@ -16,16 +16,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -39,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hiit.R
@@ -64,6 +69,78 @@ private val StartButtonGradient = Brush.horizontalGradient(
     listOf(Green500, Mint400),
 )
 
+/** Columna de dato dentro de la tarjeta de sesión: icono, etiqueta y valor. */
+@Composable
+private fun StatColumn(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    iconTint: Color = Color.White,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(20.dp),
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = White70,
+            maxLines = 1,
+            softWrap = false,
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White,
+            maxLines = 1,
+            softWrap = false,
+        )
+    }
+}
+
+/** Línea de calentamiento/enfriamiento: icono teñido + etiqueta y valor. */
+@Composable
+private fun WarmCoolLine(
+    icon: ImageVector,
+    iconTint: Color,
+    text: String,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text,
+            style = MaterialTheme.typography.bodySmall,
+            color = White70,
+        )
+    }
+}
+
+/** Separador vertical entre columnas de datos. */
+@Composable
+private fun StatDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(40.dp)
+            .background(Color.White.copy(alpha = 0.12f)),
+    )
+}
+
 /** Pestaña HIIT: pantalla inmersiva con el resumen de la sesión y el botón de inicio. */
 @Composable
 fun HiitHomeScreen(
@@ -82,41 +159,21 @@ fun HiitHomeScreen(
         // Orbes decorativos en deriva para profundidad visual
         FloatingOrbs(accent = GreenAccent)
 
+        // Pantalla fija, sin scroll: los espacios se compactan para caber
+        // en cualquier altura y el sobrante lo absorbe el espaciador con peso
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Línea de acento
-            Box(
-                modifier = Modifier
-                    .width(40.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(GreenAccent, Color.White.copy(alpha = 0.5f)),
-                        ),
-                    ),
-            )
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // Marca
-            BrandLogo()
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                stringResource(R.string.hiit_title),
-                style = MaterialTheme.typography.bodySmall,
-                color = White70,
-                letterSpacing = 1.5.sp,
-            )
+            BrandLogo(logoHeight = 20.dp)
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 stringResource(R.string.hiit_ready),
@@ -125,139 +182,175 @@ fun HiitHomeScreen(
                 color = Color.White,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                stringResource(R.string.hiit_ready_subtitle).uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                color = White70,
+                letterSpacing = 3.sp,
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Tarjeta de cristal con el resumen de la sesión
             GlassCard {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
+                    // Encabezado centrado: rayo + etiqueta, sin caja
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .width(16.dp)
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(GreenAccent, Color.White.copy(alpha = 0.5f)),
-                                    ),
-                                ),
+                        Icon(
+                            Icons.Filled.Bolt,
+                            contentDescription = null,
+                            tint = Mint300,
+                            modifier = Modifier.size(18.dp),
                         )
                         Text(
                             stringResource(R.string.hiit_your_session).uppercase(),
                             style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
                             color = White70,
-                            letterSpacing = 1.2.sp,
+                            letterSpacing = 1.5.sp,
                         )
                     }
-                    Text(
-                        if (settings.hiitRounds <= 0) {
-                            stringResource(
-                                R.string.hiit_summary_infinite,
-                                formatDuration(context, settings.hiitWalkSeconds),
-                                formatDuration(context, settings.hiitRunSeconds),
-                            )
-                        } else {
-                            stringResource(
-                                R.string.hiit_summary_format,
-                                formatDuration(context, settings.hiitWalkSeconds),
-                                formatDuration(context, settings.hiitRunSeconds),
-                                settings.hiitRounds,
-                            )
-                        },
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Resumen grande: la alta intensidad va en menta para destacar.
+                    // Las rondas viven en los cuadros de abajo para no saturar la línea.
+                    val walkText = formatDuration(context, settings.hiitWalkSeconds)
+                    val runText = formatDuration(context, settings.hiitRunSeconds)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            walkText,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                        Text(
+                            "  →  ",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Black,
+                            color = White70,
+                        )
+                        Text(
+                            runText,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Mint300,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
                     Text(
                         stringResource(R.string.hiit_summary_caption),
                         style = MaterialTheme.typography.bodySmall,
                         color = White70,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(R.string.hiit_warmup),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = White70,
-                                letterSpacing = 1.sp,
-                            )
-                            Text(
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Cuadros de datos: rondas y duración
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.06f))
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        StatColumn(
+                            icon = Icons.Filled.Refresh,
+                            label = stringResource(R.string.hiit_rounds_label),
+                            value = if (settings.hiitRounds <= 0) {
+                                "∞"
+                            } else {
+                                "${settings.hiitRounds}"
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                        StatDivider()
+                        StatColumn(
+                            icon = Icons.Filled.Timer,
+                            label = stringResource(R.string.hiit_total_label),
+                            value = if (settings.hiitRounds <= 0) {
+                                "∞"
+                            } else {
+                                formatDuration(context, settings.hiitTotalSeconds)
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Calentamiento y enfriamiento, una línea cada uno: los nombres
+                    // son largos y no caben en cuadros estrechos
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        WarmCoolLine(
+                            icon = Icons.Filled.Whatshot,
+                            iconTint = Color(0xFFFF8A65),
+                            text = stringResource(R.string.hiit_warmup) + " · " + (
                                 if (settings.hiitWarmupSeconds > 0) {
                                     formatDuration(context, settings.hiitWarmupSeconds)
                                 } else {
-                                    stringResource(R.string.common_disabled)
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                            )
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(R.string.hiit_cooldown),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = White70,
-                                letterSpacing = 1.sp,
-                            )
-                            Text(
+                                    "OFF"
+                                }
+                                ),
+                        )
+                        WarmCoolLine(
+                            icon = Icons.Filled.AcUnit,
+                            iconTint = Color(0xFF81D4FA),
+                            text = stringResource(R.string.hiit_cooldown) + " · " + (
                                 if (settings.hiitCooldownSeconds > 0) {
                                     formatDuration(context, settings.hiitCooldownSeconds)
                                 } else {
-                                    stringResource(R.string.common_disabled)
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                            )
-                        }
+                                    "OFF"
+                                }
+                                ),
+                        )
                     }
-                    Text(
-                        stringResource(
-                            if (settings.hiitRounds <= 0) {
-                                R.string.hiit_total_infinite
-                            } else {
-                                R.string.hiit_total_duration
-                            },
-                            formatDuration(context, settings.hiitTotalSeconds),
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = White70,
-                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Enlace a los tiempos de la sesión (mismo lenguaje que
-            // «Ajustar sesión» de esta pestaña)
+            // Enlace a los tiempos de la sesión como píldora compacta
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(Green100.copy(alpha = 0.18f))
+                    .background(Color.White.copy(alpha = 0.10f))
+                    .border(
+                        1.dp,
+                        Color.White.copy(alpha = 0.18f),
+                        RoundedCornerShape(50),
+                    )
                     .clickable(onClick = onConfig)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     Icons.Default.Tune,
                     contentDescription = null,
-                    modifier = Modifier.size(15.dp),
+                    modifier = Modifier.size(16.dp),
                     tint = Color.White,
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     stringResource(R.string.hiit_adjust_session),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White,
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.width(2.dp))
                 Icon(
@@ -268,18 +361,18 @@ fun HiitHomeScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(28.dp))
                     .background(StartButtonGradient)
                     .border(
                         1.dp,
                         Color.White.copy(alpha = 0.25f),
-                        RoundedCornerShape(16.dp),
+                        RoundedCornerShape(28.dp),
                     ),
             ) {
                 Button(
@@ -297,7 +390,7 @@ fun HiitHomeScreen(
                         }
                     },
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
                         contentColor = Green900,
@@ -310,7 +403,7 @@ fun HiitHomeScreen(
             }
 
             if (settings.hiitWarmupSeconds > 0) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     stringResource(R.string.hiit_warmup_note, settings.hiitWarmupSeconds),
                     style = MaterialTheme.typography.bodySmall,
@@ -318,9 +411,12 @@ fun HiitHomeScreen(
                 )
             }
 
+            // Absorbe el sobrante de altura para que la pantalla quede fija
+            Spacer(modifier = Modifier.weight(1f))
+
             // Espacio para que el último elemento quede por encima de la barra
-            // de navegación flotante al llegar al final del scroll
-            Spacer(modifier = Modifier.navigationBarsPadding().height(104.dp))
+            // de navegación flotante
+            Spacer(modifier = Modifier.navigationBarsPadding().height(84.dp))
         }
     }
 }

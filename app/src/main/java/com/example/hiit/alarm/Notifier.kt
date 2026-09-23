@@ -16,7 +16,12 @@ object Notifier {
     private const val CHANNEL_ID = "hiit_alerts"
     const val NOTIFICATION_ID_PUBLIC = 1001
 
-    fun show(context: Context, message: String) {
+    /**
+     * Muestra un aviso transitorio que se retira solo pasados [timeoutMs]
+     * (por defecto unos segundos), para no tapar la app ni quedarse en la
+     * bandeja. El aviso del fin de sesión dura algo más.
+     */
+    fun show(context: Context, message: String, timeoutMs: Long = 4_000) {
         createChannel(context)
 
         val fullScreenIntent = PendingIntent.getActivity(
@@ -36,6 +41,7 @@ object Notifier {
             .setAutoCancel(true)
             .setContentIntent(fullScreenIntent)
             .setFullScreenIntent(fullScreenIntent, true)
+            .setTimeoutAfter(timeoutMs)
 
         try {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_PUBLIC, builder.build())

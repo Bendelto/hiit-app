@@ -86,9 +86,9 @@ private val RunGradient = Brush.verticalGradient(
     listOf(Color(0xFFB71C1C), Color(0xFFE64A19), Color(0xFFFF8F00)),
 )
 private val WalkGradient = Brush.verticalGradient(
-    // Mint400 en vez de Mint300: la menta cruda lavaba la mitad superior
-    // de la pantalla y el degradado se percibía pálido.
-    listOf(Mint400, Blue500),
+    // Green500 arriba, como la pantalla de sesión completada: la menta se
+    // percibía pálida y blancuzca en la mitad superior de la pantalla.
+    listOf(Green500, Blue500),
 )
 private val PrepGradient = Brush.verticalGradient(
     listOf(Aqua500, Blue700),
