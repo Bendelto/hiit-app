@@ -37,14 +37,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +62,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hiit.R
@@ -66,9 +72,11 @@ import com.example.hiit.alarm.HiitSession
 import com.example.hiit.alarm.StepsValidator
 import com.example.hiit.alarm.formatDuration
 import com.example.hiit.data.AppSettings
+import com.example.hiit.data.SettingsRepository
 import com.example.hiit.data.formatDistance
 import java.text.NumberFormat
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 // ─── Gradientes para el workout ─────────────────────────────────────────────
@@ -78,7 +86,9 @@ private val RunGradient = Brush.verticalGradient(
     listOf(Color(0xFFB71C1C), Color(0xFFE64A19), Color(0xFFFF8F00)),
 )
 private val WalkGradient = Brush.verticalGradient(
-    listOf(Mint300, Blue500),
+    // Mint400 en vez de Mint300: la menta cruda lavaba la mitad superior
+    // de la pantalla y el degradado se percibía pálido.
+    listOf(Mint400, Blue500),
 )
 private val PrepGradient = Brush.verticalGradient(
     listOf(Aqua500, Blue700),
@@ -86,6 +96,14 @@ private val PrepGradient = Brush.verticalGradient(
 private val CooldownGradient = Brush.verticalGradient(
     listOf(Aqua500, Green700),
 )
+
+// Si en la primera caminata el sensor registra menos pasos que esto, se asume
+// que el celular está quieto (p. ej. apoyado en la caminadora) y se pregunta
+// al usuario si activar el modo caminadora.
+private const val TREADMILL_MIN_STEPS = 10
+
+// Tope de la ventana de detección: pasado este tiempo de sesión ya no se pregunta.
+private const val TREADMILL_ASK_MAX_MS = 10 * 60_000L
 
 // ─── HIIT Workout Screen ────────────────────────────────────────────────────
 
@@ -131,6 +149,13 @@ fun HiitWorkoutScreen(
         }
     }
 
+    // Detección de caminadora: si en la primera caminata el sensor no registra
+    // casi pasos, el celular está quieto y se pregunta una vez si se activa el
+    // modo caminadora (la distancia real se anota al terminar la sesión)
+    var treadmillAsked by remember { mutableStateOf(false) }
+    var treadmillDismissed by remember { mutableStateOf(false) }
+    val repository = remember { SettingsRepository(context) }
+
     // En pausa el tiempo queda congelado: se muestra el guardado, no el del reloj
     val remainingMs = if (isPaused) {
         settings.hiitPausedSeconds * 1_000L
@@ -138,6 +163,29 @@ fun HiitWorkoutScreen(
         (settings.hiitPhaseEnd - nowMs).coerceAtLeast(0L)
     }
     val remainingSec = remainingMs / 1_000L
+
+    // Comprobación periódica (cada segundo) con la sesión releída de DataStore:
+    // los valores de la composición quedan obsoletos (de hecho la pantalla se
+    // abre con hiitStartedAt aún en 0, antes de que start() lo escriba) y, con
+    // el teléfono quieto, liveSteps no cambia nunca, así que un efecto keyed
+    // en liveSteps jamás volvería a evaluarse.
+    LaunchedEffect(Unit) {
+        while (!treadmillAsked && !treadmillDismissed) {
+            delay(1_000)
+            val s = repository.settings.first()
+            // Sin línea de base no hay sensor/permiso (no hay qué detectar) y
+            // con el modo ya activo no hace falta preguntar
+            if (s.hiitStepBaseline < 0 || s.hiitTreadmillMode) break
+            if (s.hiitPausedSeconds > 0) continue
+            if (s.hiitPhase != HiitPhase.WALK.name || s.hiitRound > 1) continue
+            // La detección solo tiene sentido al inicio de la sesión
+            if (s.hiitStartedAt > 0 && System.currentTimeMillis() - s.hiitStartedAt > TREADMILL_ASK_MAX_MS) break
+            val walkElapsedMs = s.hiitWalkSeconds * 1_000L - (s.hiitPhaseEnd - System.currentTimeMillis())
+            if (walkElapsedMs in 20_000..60_000 && liveSteps < TREADMILL_MIN_STEPS) {
+                treadmillAsked = true
+            }
+        }
+    }
     val rawProgress = if (phaseTotalSec > 0) {
         (1f - remainingMs / (phaseTotalSec * 1_000f)).coerceIn(0f, 1f)
     } else {
@@ -189,6 +237,10 @@ fun HiitWorkoutScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // Logo de la marca en la cabecera de la sesión
+            BrandLogo()
+            Spacer(modifier = Modifier.height(12.dp))
+
             // Label superior
             Text(
                 stringResource(R.string.hiit_workout_label),
@@ -224,7 +276,9 @@ fun HiitWorkoutScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            // Espacio fijo pequeño: el sobrante vertical queda abajo, entre el
+            // anillo y los botones, para dar aire a la tarjeta de caminadora
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Fase con animación de cambio
             AnimatedContent(
@@ -245,13 +299,13 @@ fun HiitWorkoutScreen(
                         running -> stringResource(R.string.hiit_phase_run)
                         else -> stringResource(R.string.hiit_phase_walk)
                     },
-                    fontSize = if (specialPhase && !paused) 30.sp else 36.sp,
+                    fontSize = if (specialPhase && !paused) 23.sp else 28.sp,
                     fontWeight = FontWeight.Black,
                     color = Color.White,
                     letterSpacing = 4.sp,
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // ── Anillo Canvas personalizado ──────────────────────────
             Box(
@@ -355,7 +409,7 @@ fun HiitWorkoutScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "${formatDuration(context, settings.hiitWalkSeconds)}   ·   " +
                     formatDuration(context, settings.hiitRunSeconds),
@@ -363,8 +417,9 @@ fun HiitWorkoutScreen(
                 color = Color.White.copy(alpha = 0.5f),
             )
 
-            // Pasos y distancia de la sesión en vivo (solo con sensor)
-            if (settings.hiitStepBaseline >= 0) {
+            // Pasos y distancia de la sesión en vivo (solo con sensor; en
+            // caminadora el contador no aporta nada y se oculta)
+            if (settings.hiitStepBaseline >= 0 && !settings.hiitTreadmillMode) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -384,6 +439,68 @@ fun HiitWorkoutScreen(
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White.copy(alpha = 0.85f),
                     )
+                }
+            }
+
+            // Pregunta de caminadora (una sola vez por sesión): si el sensor
+            // no detectó movimiento en la primera caminata, se ofrece activar
+            // el modo; la distancia real se anota al terminar
+            if (treadmillAsked && !treadmillDismissed) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White.copy(alpha = 0.15f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            1.dp,
+                            Color.White.copy(alpha = 0.25f),
+                            RoundedCornerShape(16.dp),
+                        ),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.hiit_treadmill_ask),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = {
+                                    treadmillDismissed = true
+                                    scope.launch { repository.setHiitTreadmillMode(true) }
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White,
+                                    contentColor = Green700,
+                                ),
+                            ) {
+                                Text(
+                                    stringResource(R.string.common_yes),
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            Button(
+                                onClick = { treadmillDismissed = true },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White.copy(alpha = 0.12f),
+                                    contentColor = Color.White,
+                                ),
+                            ) {
+                                Text(
+                                    stringResource(R.string.common_no),
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -456,6 +573,8 @@ fun HiitCompletedScreen(
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val repository = remember { SettingsRepository(context) }
 
     // Animación de entrada
     var visible by remember { mutableStateOf(false) }
@@ -566,7 +685,7 @@ fun HiitCompletedScreen(
                                 },
                             ),
                         )
-                        if (StepsValidator.hasSensor(context)) {
+                        if (StepsValidator.hasSensor(context) || settings.hiitTreadmillMode) {
                             CompletedStatRow(
                                 stringResource(R.string.hiit_stat_steps),
                                 NumberFormat.getInstance().format(settings.hiitLastSteps),
@@ -574,6 +693,24 @@ fun HiitCompletedScreen(
                             CompletedStatRow(
                                 stringResource(R.string.hiit_stat_distance),
                                 formatDistance(settings.hiitLastDistanceM),
+                            )
+                        }
+                        // Campo de distancia: visible con el modo caminadora
+                        // activo o de forma semi-automática cuando el sensor no
+                        // contó pasos en una sesión > 1 min (celular quieto,
+                        // p. ej. apoyado en la caminadora)
+                        val noStepsDetected = settings.hiitLastSteps == 0 && settings.hiitLastSeconds >= 60
+                        if (settings.hiitTreadmillMode || noStepsDetected) {
+                            TreadmillDistanceEditor(
+                                initialMeters = settings.hiitLastDistanceM,
+                                onSave = { meters ->
+                                    scope.launch {
+                                        repository.updateLastSessionStats(
+                                            steps = HiitSession.stepsForDistance(meters),
+                                            distanceMeters = meters,
+                                        )
+                                    }
+                                },
                             )
                         }
                         CompletedStatRow(
@@ -625,5 +762,86 @@ private fun CompletedStatRow(label: String, value: String) {
             fontWeight = FontWeight.Bold,
             color = Color.White,
         )
+    }
+}
+
+/**
+ * Campo para anotar la distancia que marca la caminadora al terminar la sesión.
+ * Acepta km con coma o punto decimal; al guardar se derivan los pasos con la
+ * zancada estándar de [HiitSession]. Diseñado sobre el cristal de la pantalla
+ * de celebración (fondo oscuro, borde y texto blancos).
+ */
+@Composable
+private fun TreadmillDistanceEditor(
+    initialMeters: Int,
+    onSave: (Int) -> Unit,
+) {
+    var text by remember {
+        mutableStateOf(if (initialMeters > 0) "%.2f".format(initialMeters / 1000f) else "")
+    }
+    var saved by remember { mutableStateOf(initialMeters > 0) }
+    val meters = text.replace(',', '.').toFloatOrNull()?.let { (it * 1000).toInt() }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.hiit_treadmill_distance_label),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.7f),
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = text,
+            onValueChange = { input ->
+                text = input.filter { it.isDigit() || it == ',' || it == '.' }
+                saved = false
+            },
+            modifier = Modifier.width(104.dp),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+            ),
+            placeholder = {
+                Text("0.00", color = Color.White.copy(alpha = 0.4f))
+            },
+            suffix = {
+                Text("km", color = Color.White.copy(alpha = 0.7f))
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White.copy(alpha = 0.08f),
+                unfocusedContainerColor = Color.White.copy(alpha = 0.08f),
+                focusedBorderColor = Color.White.copy(alpha = 0.6f),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White,
+            ),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        TextButton(
+            onClick = {
+                meters?.let {
+                    onSave(it)
+                    saved = true
+                }
+            },
+            enabled = meters != null && meters > 0 && !saved,
+        ) {
+            Text(
+                stringResource(if (saved) R.string.common_saved_check else R.string.common_save),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = when {
+                    saved -> Mint300
+                    else -> Color.White
+                },
+            )
+        }
     }
 }

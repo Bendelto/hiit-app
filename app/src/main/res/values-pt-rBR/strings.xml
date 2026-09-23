@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">MoveInterval</string>
+    <string name="app_name" translatable="false">HIITGO</string>
     <string name="channel_name">Avisos HIIT</string>
     <string name="channel_description">Avisos das fases e do fim da sessão HIIT</string>
     <string name="notification_title">HIIT</string>
@@ -10,6 +10,8 @@
     <string name="common_close">Fechar</string>
     <string name="common_back">Voltar</string>
     <string name="common_grant">Conceder</string>
+    <string name="common_yes">Sim</string>
+    <string name="common_no">Não</string>
     <string name="common_save">Salvar</string>
     <string name="common_saved">Salvo</string>
     <string name="common_saved_check">✓ Salvo</string>
@@ -50,6 +52,10 @@
     <string name="hiit_sounds_subtitle">Bipes 3, 2, 1 antes de cada mudança e tons por fase</string>
     <string name="hiit_voice_title">Guia por voz</string>
     <string name="hiit_voice_subtitle">O app diz "caminhe" e "corra" em voz alta</string>
+    <string name="hiit_treadmill_title">Esteira</string>
+    <string name="hiit_treadmill_subtitle">O celular fica parado: ao terminar, anote a distância mostrada na esteira</string>
+    <string name="hiit_treadmill_distance_label">Distância na esteira</string>
+    <string name="hiit_treadmill_ask">Você está usando uma esteira?</string>
     <string name="hiit_home_subtitle">Treine por intervalos com guia de voz</string>
     <string name="hiit_config_subtitle">Ajuste sua sessão de intervalos</string>
     <string name="hiit_adjust_session">Ajustar sessão</string>
@@ -88,7 +94,7 @@
 
     <!-- Onboarding -->
     <string name="onboarding_page1_stat" translatable="false">HIIT</string>
-    <string name="onboarding_page1_title">Bem-vindo ao MoveInterval</string>
+    <string name="onboarding_page1_title">Bem-vindo ao HIITGO</string>
     <string name="onboarding_page1_body">Seu cronômetro de intervalos de alta intensidade: alterne esforços curtos e descanso com guia por voz, sem precisar olhar o celular.</string>
     <string name="onboarding_page2_stat" translatable="false">×8</string>
     <string name="onboarding_page2_title">Configure sua sessão</string>
@@ -120,7 +126,7 @@
     <string name="settings_subtitle">Sessão e permissões</string>
     <string name="settings_hiit_row">Sessão HIIT</string>
     <string name="settings_permissions">Permissões</string>
-    <string name="settings_permissions_desc">O MoveInterval precisa destas permissões para programar suas sessões e avisar na hora certa.</string>
+    <string name="settings_permissions_desc">O HIITGO precisa destas permissões para programar suas sessões e avisar na hora certa.</string>
     <string name="settings_perm_notifications">Notificações</string>
     <string name="settings_perm_notifications_desc">Para mostrar o aviso na tela</string>
     <string name="settings_perm_exact_alarms">Alarmes exatos</string>
@@ -163,6 +169,5 @@
 
     <!-- Aviso de permissões -->
     <string name="perm_banner_title">Permissões desativadas</string>
-    <string name="perm_banner_message">Ative as notificações, o reconhecimento de atividade e os alarmes exatos para que seus avisos toquem na hora.</string>
     <string name="perm_banner_settings">Abrir ajustes</string>
 </resources>

@@ -34,6 +34,9 @@ object HiitSession {
     /** Distancia estimada en metros a partir de los pasos de la sesión. */
     fun distanceMeters(steps: Int): Int = (steps * STRIDE_METERS).toInt()
 
+    /** Pasos estimados a partir de una distancia (misma zancada estándar). */
+    fun stepsForDistance(distanceMeters: Int): Int = (distanceMeters / STRIDE_METERS).toInt()
+
     /**
      * Pasos caminados desde el inicio de la sesión: contador del sensor menos
      * la línea de base anotada al arrancar. 0 si no hay sensor o lectura.
@@ -61,8 +64,13 @@ object HiitSession {
         val settings = repo.settings.first()
         repo.setHiitActive(true)
         // Línea de base de pasos y hora de inicio: alimentan el contador en
-        // vivo y el resumen de la sesión (solo con sensor y permiso)
-        val stepBaseline = if (StepsValidator.hasSensor(context) && StepsValidator.hasPermission(context)) {
+        // vivo y el resumen de la sesión. En caminadora el celular queda fijo
+        // y el sensor no cuenta pasos: se omite la línea de base (=-1).
+        val stepBaseline = if (
+            !settings.hiitTreadmillMode &&
+            StepsValidator.hasSensor(context) &&
+            StepsValidator.hasPermission(context)
+        ) {
             StepsValidator.readCounterOnce(context) ?: -1f
         } else {
             -1f

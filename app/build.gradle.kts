@@ -8,7 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.hiit"
+        applicationId = "com.hiitgo"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

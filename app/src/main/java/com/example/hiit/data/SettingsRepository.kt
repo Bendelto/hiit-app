@@ -26,6 +26,9 @@ data class AppSettings(
     // Sonidos de cuenta regresiva (pitidos) y guía de voz en HIIT
     val hiitSounds: Boolean = true,
     val hiitVoice: Boolean = true,
+    // Modo caminadora: el celular queda fijo, así que el sensor no cuenta pasos;
+    // la distancia real se anota a mano al terminar la sesión
+    val hiitTreadmillMode: Boolean = false,
     // Estado en vivo de la sesión HIIT: fase actual, ronda y fin de la fase (epoch ms).
     // Es la fuente de verdad que sincroniza la pantalla del cronómetro con las alarmas.
     val hiitPhase: String = "",
@@ -75,6 +78,7 @@ class SettingsRepository(private val context: Context) {
         val HIIT_ACTIVE = booleanPreferencesKey("hiit_active")
         val HIIT_SOUNDS = booleanPreferencesKey("hiit_sounds")
         val HIIT_VOICE = booleanPreferencesKey("hiit_voice")
+        val HIIT_TREADMILL_MODE = booleanPreferencesKey("hiit_treadmill_mode")
         val HIIT_PHASE = stringPreferencesKey("hiit_phase")
         val HIIT_ROUND = intPreferencesKey("hiit_round")
         val HIIT_PHASE_END = longPreferencesKey("hiit_phase_end")
@@ -104,6 +108,7 @@ class SettingsRepository(private val context: Context) {
             hiitActive = prefs[Keys.HIIT_ACTIVE] ?: false,
             hiitSounds = prefs[Keys.HIIT_SOUNDS] ?: true,
             hiitVoice = prefs[Keys.HIIT_VOICE] ?: true,
+            hiitTreadmillMode = prefs[Keys.HIIT_TREADMILL_MODE] ?: false,
             hiitPhase = prefs[Keys.HIIT_PHASE] ?: "",
             hiitRound = prefs[Keys.HIIT_ROUND] ?: 0,
             hiitPhaseEnd = prefs[Keys.HIIT_PHASE_END] ?: 0L,
@@ -156,6 +161,20 @@ class SettingsRepository(private val context: Context) {
     suspend fun setHiitVoice(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.HIIT_VOICE] = enabled
+        }
+    }
+
+    suspend fun setHiitTreadmillMode(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_TREADMILL_MODE] = enabled
+        }
+    }
+
+    /** Corrige pasos y distancia de la última sesión (distancia anotada a mano en caminadora). */
+    suspend fun updateLastSessionStats(steps: Int, distanceMeters: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_LAST_STEPS] = steps
+            prefs[Keys.HIIT_LAST_DISTANCE_M] = distanceMeters
         }
     }
 

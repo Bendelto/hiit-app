@@ -527,13 +527,14 @@ fun ConfigHeader(
 // ─── BrandLogo ──────────────────────────────────────────────────────────────
 
 /**
- * Logo de texto de la marca (Move blanco + Interval menta) sobre una píldora
- * oscura semitransparente para que se lea claro sobre cualquier degradado.
+ * Logo completo de la marca (monograma con degradado menta + Move Interval
+ * blanco + GO en degradado) sobre una píldora oscura semitransparente para
+ * que se lea claro sobre cualquier fondo.
  */
 @Composable
 fun BrandLogo(
     modifier: Modifier = Modifier,
-    logoHeight: androidx.compose.ui.unit.Dp = 22.dp,
+    logoHeight: androidx.compose.ui.unit.Dp = 20.dp,
 ) {
     Surface(
         shape = RoundedCornerShape(50),
@@ -541,10 +542,13 @@ fun BrandLogo(
         modifier = modifier,
     ) {
         Image(
-            painter = painterResource(R.drawable.logo_mi_texto),
+            painter = painterResource(R.drawable.logo_completo),
             contentDescription = stringResource(R.string.app_name),
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 9.dp)
+                // El monograma llena hasta el borde superior del viewBox y el
+                // texto pesa abajo: el aire vertical se reparte desigual (menos
+                // arriba, más abajo) para que el texto quede centrado a ojo.
+                .padding(start = 12.dp, top = 5.dp, end = 12.dp, bottom = 9.dp)
                 .height(logoHeight),
         )
     }
@@ -683,7 +687,7 @@ fun StatCard(
 // ─── Aviso de Permisos ──────────────────────────────────────────────────────
 
 /**
- * Banner superior que anima a conceder los permisos que la app necesita.
+ * Chip flotante que anima a conceder los permisos que la app necesita.
  * Mientras falte alguno permanece visible; al concederlos desaparece con
  * una animación. [actionLabel] cambia según se pueda volver a preguntar
  * ("Conceder") o haya que ir a los ajustes del sistema ("Abrir ajustes").
@@ -696,66 +700,34 @@ fun PermissionWarningBanner(
 ) {
     Surface(
         modifier = modifier
-            .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .border(
-                1.dp,
-                Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.45f),
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
-                    ),
-                ),
-                RoundedCornerShape(18.dp),
-            ),
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .shadow(6.dp, RoundedCornerShape(50)),
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
     ) {
         Row(
-            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
+            modifier = Modifier.padding(start = 14.dp, top = 2.dp, bottom = 2.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.14f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Default.NotificationsActive,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(19.dp),
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.perm_banner_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    stringResource(R.string.perm_banner_message),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Icon(
+                Icons.Default.NotificationsActive,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(16.dp),
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(AccentGradient)
-                    .clickable(onClick = onAction)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-            ) {
+            Text(
+                stringResource(R.string.perm_banner_title),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            TextButton(onClick = onAction) {
                 Text(
                     actionLabel,
                     style = MaterialTheme.typography.labelMedium,
-                    color = Green900,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }

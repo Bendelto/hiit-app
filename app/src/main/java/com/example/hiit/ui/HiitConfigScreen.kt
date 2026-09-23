@@ -200,6 +200,12 @@ fun HiitConfigScreen(
                         checked = settings.hiitVoice,
                         onChange = { scope.launch { repository.setHiitVoice(it) } },
                     )
+                    ActivationSwitch(
+                        title = stringResource(R.string.hiit_treadmill_title),
+                        subtitle = stringResource(R.string.hiit_treadmill_subtitle),
+                        checked = settings.hiitTreadmillMode,
+                        onChange = { scope.launch { repository.setHiitTreadmillMode(it) } },
+                    )
                 }
             }
 

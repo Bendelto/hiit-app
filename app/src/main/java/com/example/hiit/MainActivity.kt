@@ -289,11 +289,7 @@ fun AppScaffold(settings: AppSettings, repository: SettingsRepository) {
                 ) {
                     PermissionWarningBanner(
                         actionLabel = stringResource(
-                            when {
-                                canAskAgain -> R.string.common_grant
-                                missingPerms.isEmpty() && exactAlarmMissing -> R.string.perm_banner_settings
-                                else -> R.string.perm_banner_settings
-                            },
+                            if (canAskAgain) R.string.common_grant else R.string.perm_banner_settings,
                         ),
                         onAction = {
                             when {
