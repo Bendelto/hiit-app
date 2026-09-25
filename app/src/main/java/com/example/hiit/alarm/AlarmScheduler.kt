@@ -109,6 +109,25 @@ class AlarmScheduler(private val context: Context) {
                 if (settings.hiitPausedSeconds > 0) {
                     // Sesión pausada: se conserva congelada y no se reprograma nada
                     scheduler.cancelHiit()
+                } else if (settings.planSteps != null) {
+                    // Sesión personalizada: se rearma el paso en curso (el
+                    // puntero apunta al siguiente, así que el en curso es el
+                    // anterior) con su propia duración.
+                    val steps = settings.planSteps ?: emptyList()
+                    if (steps.isEmpty()) {
+                        scheduler.cancelHiit()
+                    } else {
+                        val currentIndex = (settings.hiitPlanIndex - 1).coerceIn(0, steps.lastIndex)
+                        val step = steps[currentIndex]
+                        repo.setHiitState(
+                            step.phase.name,
+                            currentIndex + 1,
+                            System.currentTimeMillis() + step.seconds * 1_000L,
+                        )
+                        val nextPhase = steps.getOrNull(currentIndex + 1)?.phase ?: HiitPhase.COOLDOWN
+                        scheduler.scheduleHiitPhase(nextPhase, step.seconds, 0)
+                        repo.setHiitPending(nextPhase.name, 0)
+                    }
                 } else {
                     // Tras un reinicio se retoma la sesión: la fase de carrera
                     // sonará al terminar el tiempo de caminata actual.

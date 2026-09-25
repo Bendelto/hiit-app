@@ -15,65 +15,87 @@ import kotlinx.coroutines.launch
 object SoundPlayer {
 
     private const val BEEP_GAP_MS = 150L
+    // Volumen relativo de los tonos agudos con el modo interior activado (0-100)
+    private const val INDOOR_VOLUME = 30
+
+    /** Un tono: frecuencia, duración y si es agudo (se atenúa en modo interior). */
+    private data class Step(val tone: Int, val durationMs: Int, val sharp: Boolean = false)
 
     /** 3 pitidos cortos, uno por segundo: la cuenta regresiva 3, 2, 1. */
     fun playCountdownBeeps() {
         play(
             listOf(
-                ToneGenerator.TONE_PROP_BEEP to 120,
-                ToneGenerator.TONE_PROP_BEEP to 120,
-                ToneGenerator.TONE_PROP_BEEP to 120,
+                Step(ToneGenerator.TONE_PROP_BEEP, 120),
+                Step(ToneGenerator.TONE_PROP_BEEP, 120),
+                Step(ToneGenerator.TONE_PROP_BEEP, 120),
             ),
             stepMs = 1_000L,
         )
     }
 
     /** Tono del cambio de fase: caminar es calmado, correr es alto y enérgico. */
-    fun playPhaseTone(phase: HiitPhase) {
+    fun playPhaseTone(phase: HiitPhase, indoor: Boolean = false) {
         when (phase) {
             // Tres pitidos ascendentes: prepárate
             HiitPhase.PREP -> play(
                 listOf(
-                    ToneGenerator.TONE_PROP_BEEP to 100,
-                    ToneGenerator.TONE_PROP_BEEP to 100,
-                    ToneGenerator.TONE_PROP_BEEP2 to 250,
+                    Step(ToneGenerator.TONE_PROP_BEEP, 100),
+                    Step(ToneGenerator.TONE_PROP_BEEP, 100),
+                    Step(ToneGenerator.TONE_PROP_BEEP2, 250),
                 ),
             )
             // Tono medio largo: empieza a caminar
-            HiitPhase.WALK -> play(listOf(ToneGenerator.TONE_PROP_BEEP2 to 400))
-            // Dos pitidos altos rápidos: ¡a correr!
+            HiitPhase.WALK -> play(listOf(Step(ToneGenerator.TONE_PROP_BEEP2, 400)))
+            // Tono medio con ligero ascenso: sube a trote
+            HiitPhase.JOG -> play(
+                listOf(
+                    Step(ToneGenerator.TONE_PROP_BEEP2, 200),
+                    Step(ToneGenerator.TONE_CDMA_HIGH_L, 250),
+                ),
+            )
+            // Dos pitidos agudos rápidos: ¡a correr!
             HiitPhase.RUN -> play(
                 listOf(
-                    ToneGenerator.TONE_CDMA_HIGH_L to 150,
-                    ToneGenerator.TONE_CDMA_HIGH_L to 250,
+                    Step(ToneGenerator.TONE_CDMA_HIGH_L, 150, sharp = true),
+                    Step(ToneGenerator.TONE_CDMA_HIGH_L, 250, sharp = true),
                 ),
+                indoor = indoor,
             )
             // Tono suave y calmado: reduce el ritmo poco a poco
             HiitPhase.COOLDOWN -> play(
                 listOf(
-                    ToneGenerator.TONE_PROP_BEEP2 to 350,
-                    ToneGenerator.TONE_PROP_BEEP to 350,
+                    Step(ToneGenerator.TONE_PROP_BEEP2, 350),
+                    Step(ToneGenerator.TONE_PROP_BEEP, 350),
                 ),
             )
         }
     }
     /** Ascendente doble: sesión terminada. */
-    fun playFinishTone() {
+    fun playFinishTone(indoor: Boolean = false) {
         play(
             listOf(
-                ToneGenerator.TONE_PROP_ACK to 250,
-                ToneGenerator.TONE_CDMA_HIGH_L to 450,
+                Step(ToneGenerator.TONE_PROP_ACK, 250),
+                Step(ToneGenerator.TONE_CDMA_HIGH_L, 450, sharp = true),
             ),
+            indoor = indoor,
         )
     }
 
-    private fun play(steps: List<Pair<Int, Int>>, stepMs: Long? = null) {
+    private fun play(steps: List<Step>, stepMs: Long? = null, indoor: Boolean = false) {
         CoroutineScope(Dispatchers.Default).launch {
             var generator: ToneGenerator? = null
+            var generatorVolume = -1
             try {
-                generator = ToneGenerator(AudioManager.STREAM_ALARM, 100)
-                for ((tone, durationMs) in steps) {
-                    generator.startTone(tone, durationMs)
+                for ((tone, durationMs, sharp) in steps) {
+                    val volume = if (indoor && sharp) INDOOR_VOLUME else 100
+                    // El volumen se fija al crear el generator, así que se
+                    // recrea solo cuando cambia entre tonos agudos y normales
+                    if (volume != generatorVolume) {
+                        generator?.release()
+                        generator = ToneGenerator(AudioManager.STREAM_ALARM, volume)
+                        generatorVolume = volume
+                    }
+                    generator?.startTone(tone, durationMs)
                     delay(stepMs ?: (durationMs + BEEP_GAP_MS))
                 }
                 // Pequeño margen para que el último tono termine de sonar

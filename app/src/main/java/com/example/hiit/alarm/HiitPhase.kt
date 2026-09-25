@@ -2,9 +2,25 @@ package com.example.hiit.alarm
 
 import android.content.Context
 import com.example.hiit.R
+import com.example.hiit.data.IntervalIntensity
 
-/** Fase del entrenamiento HIIT: preparación, caminata, carrera o enfriamiento. */
-enum class HiitPhase { PREP, WALK, RUN, COOLDOWN }
+/** Fase del entrenamiento HIIT: preparación, niveles de intensidad o enfriamiento. */
+enum class HiitPhase { PREP, WALK, JOG, RUN, COOLDOWN }
+
+/** Fase equivalente de cada nivel de intensidad de los perfiles personalizados. */
+fun IntervalIntensity.asPhase(): HiitPhase = when (this) {
+    IntervalIntensity.WALK -> HiitPhase.WALK
+    IntervalIntensity.JOG -> HiitPhase.JOG
+    IntervalIntensity.RUN -> HiitPhase.RUN
+}
+
+/** Nivel de intensidad de una fase de esfuerzo; null en PREP y COOLDOWN. */
+fun HiitPhase.asIntensity(): IntervalIntensity? = when (this) {
+    HiitPhase.WALK -> IntervalIntensity.WALK
+    HiitPhase.JOG -> IntervalIntensity.JOG
+    HiitPhase.RUN -> IntervalIntensity.RUN
+    else -> null
+}
 
 /** "2 min 30 s" para mostrar en pantalla. */
 fun formatDuration(context: Context, seconds: Int): String {

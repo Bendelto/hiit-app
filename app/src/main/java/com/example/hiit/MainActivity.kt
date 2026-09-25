@@ -80,6 +80,8 @@ import com.example.hiit.ui.Mint300
 import com.example.hiit.ui.OnboardingScreen
 import com.example.hiit.ui.HiitTheme
 import com.example.hiit.ui.PermissionWarningBanner
+import com.example.hiit.ui.ProfileEditorScreen
+import com.example.hiit.ui.ProfilesScreen
 import com.example.hiit.ui.SettingsScreen
 import com.example.hiit.ui.StatsScreen
 import com.example.hiit.util.hasAllPermissions
@@ -94,6 +96,8 @@ object Routes {
     const val STATS = "stats"
     const val HIIT = "hiit"
     const val HIIT_CONFIG = "hiit_config"
+    const val CUSTOM_PROFILES = "custom_profiles"
+    const val PROFILE_EDITOR = "profile_editor"
     const val SETTINGS = "settings"
 
     val rootRoutes = setOf(STATS, HIIT, SETTINGS)
@@ -244,6 +248,55 @@ fun AppScaffold(settings: AppSettings, repository: SettingsRepository) {
                                 },
                             ) {
                                 HiitConfigScreen(
+                                    settings = settings,
+                                    repository = repository,
+                                    scope = scope,
+                                    onBack = { navController.popBackStack() },
+                                    onCustomProfiles = {
+                                        navController.navigate(Routes.CUSTOM_PROFILES)
+                                    },
+                                )
+                            }
+                            composable(
+                                Routes.CUSTOM_PROFILES,
+                                enterTransition = {
+                                    slideInHorizontally(tween(280)) { it / 4 } +
+                                        fadeIn(tween(280))
+                                },
+                                popExitTransition = {
+                                    slideOutHorizontally(tween(280)) { it / 4 } +
+                                        fadeOut(tween(200))
+                                },
+                            ) {
+                                ProfilesScreen(
+                                    settings = settings,
+                                    repository = repository,
+                                    scope = scope,
+                                    onBack = { navController.popBackStack() },
+                                    onNew = {
+                                        navController.navigate(
+                                            "${Routes.PROFILE_EDITOR}/new",
+                                        )
+                                    },
+                                    onEdit = { id ->
+                                        navController.navigate("${Routes.PROFILE_EDITOR}/$id")
+                                    },
+                                )
+                            }
+                            composable(
+                                "${Routes.PROFILE_EDITOR}/{profileId}",
+                                enterTransition = {
+                                    slideInHorizontally(tween(280)) { it / 4 } +
+                                        fadeIn(tween(280))
+                                },
+                                popExitTransition = {
+                                    slideOutHorizontally(tween(280)) { it / 4 } +
+                                        fadeOut(tween(200))
+                                },
+                            ) { entry ->
+                                ProfileEditorScreen(
+                                    profileId = entry.arguments?.getString("profileId")
+                                        ?.takeIf { it != "new" },
                                     settings = settings,
                                     repository = repository,
                                     scope = scope,

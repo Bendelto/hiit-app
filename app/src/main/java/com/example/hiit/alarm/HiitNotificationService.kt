@@ -116,6 +116,7 @@ class HiitNotificationService : Service() {
             settings == null -> getString(R.string.notif_hiit_ongoing)
             isPaused -> getString(R.string.notif_hiit_paused)
             settings.hiitPhase == HiitPhase.PREP.name -> getString(R.string.notif_hiit_prep)
+            settings.hiitPhase == HiitPhase.JOG.name -> getString(R.string.notif_hiit_jog)
             settings.hiitPhase == HiitPhase.RUN.name -> getString(R.string.notif_hiit_run)
             settings.hiitPhase == HiitPhase.COOLDOWN.name -> getString(R.string.notif_hiit_cooldown)
             else -> getString(R.string.notif_hiit_walk)

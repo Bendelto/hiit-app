@@ -2,7 +2,11 @@ package com.example.hiit.alarm
 
 import android.content.Context
 import com.example.hiit.R
+import com.example.hiit.data.IntervalIntensity
+import com.example.hiit.data.IntervalProfile
+import com.example.hiit.data.PlanStep
 import com.example.hiit.data.SettingsRepository
+import com.example.hiit.data.buildPlan
 import com.example.hiit.tts.TtsSpeaker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +66,9 @@ object HiitSession {
     ) {
         val repo = SettingsRepository(context)
         val settings = repo.settings.first()
+        // Por si quedó resto de una sesión personalizada anterior: la sesión
+        // clásica nunca debe ver un plan activo.
+        if (!settings.hiitPlanJson.isBlank()) repo.setSessionPlan(emptyList())
         repo.setHiitActive(true)
         // Línea de base de pasos y hora de inicio: alimentan el contador en
         // vivo y el resumen de la sesión. En caminadora el celular queda fijo
@@ -84,7 +91,7 @@ object HiitSession {
                 System.currentTimeMillis() + warmupSeconds * 1_000L,
             )
             repo.setHiitPending(HiitPhase.WALK.name, rounds)
-            if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.PREP)
+            if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.PREP, indoor = settings.hiitIndoorMode)
             if (settings.hiitVoice) {
                 speak(
                     context,
@@ -107,7 +114,7 @@ object HiitSession {
             repo.setHiitPending(HiitPhase.RUN.name, rounds)
             val cue = walkCue(context, walkSeconds)
             Notifier.show(context, cue)
-            if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.WALK)
+            if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.WALK, indoor = settings.hiitIndoorMode)
             if (settings.hiitVoice) speak(context, cue)
             scheduler.scheduleHiitPhase(HiitPhase.RUN, walkSeconds, rounds)
             if (settings.hiitSounds && walkSeconds > AlarmReceiver.COUNTDOWN_LEAD_SECONDS + 2) {
@@ -115,6 +122,92 @@ object HiitSession {
             }
         }
         HiitNotificationService.start(context)
+    }
+
+    /**
+     * Arranca una sesión con un perfil personalizado. El plan completo
+     * (calentamiento, intervalos ordenados según el modo y repetidos N veces, y
+     * enfriamiento) queda guardado en DataStore como fuente de verdad;
+     * [HiitEngine] lo recorre paso a paso con [enterPlanStep].
+     */
+    suspend fun startCustom(context: Context, profile: IntervalProfile) {
+        val steps = profile.buildPlan()
+        if (steps.isEmpty()) return
+        val repo = SettingsRepository(context)
+        val settings = repo.settings.first()
+        repo.setSessionPlan(steps)
+        repo.setHiitActive(true)
+        // Misma línea de base de pasos que en la sesión clásica
+        val stepBaseline = if (
+            !settings.hiitTreadmillMode &&
+            StepsValidator.hasSensor(context) &&
+            StepsValidator.hasPermission(context)
+        ) {
+            StepsValidator.readCounterOnce(context) ?: -1f
+        } else {
+            -1f
+        }
+        repo.setHiitSessionStart(System.currentTimeMillis(), stepBaseline)
+        val scheduler = AlarmScheduler(context)
+        enterPlanStep(context, repo, settings, scheduler, steps, 0)
+        HiitNotificationService.start(context)
+    }
+
+    /**
+     * Entra en el paso [index] del plan: publica el estado en vivo (fase y
+     * número de paso), avisa al usuario y programa la alarma que disparará el
+     * paso siguiente. También lo usa [HiitEngine] al avanzar la sesión.
+     */
+    suspend fun enterPlanStep(
+        context: Context,
+        repo: SettingsRepository,
+        settings: com.example.hiit.data.AppSettings,
+        scheduler: AlarmScheduler,
+        steps: List<PlanStep>,
+        index: Int,
+    ) {
+        val step = steps[index]
+        repo.setHiitState(
+            step.phase.name,
+            index + 1,
+            System.currentTimeMillis() + step.seconds * 1_000L,
+        )
+        // El puntero apunta siempre al siguiente paso; cuando la alarma suene
+        // tras el último, el engine verá el plan agotado y cerrará la sesión.
+        repo.setPlanIndex(index + 1)
+        val nextPhase = steps.getOrNull(index + 1)?.phase ?: HiitPhase.COOLDOWN
+        scheduler.scheduleHiitPhase(nextPhase, step.seconds, 0)
+        repo.setHiitPending(nextPhase.name, 0)
+        when (step.phase) {
+            HiitPhase.PREP -> {
+                if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.PREP, indoor = settings.hiitIndoorMode)
+                if (settings.hiitVoice) {
+                    speak(
+                        context,
+                        context.getString(
+                            R.string.tts_hiit_start,
+                            speakDuration(context, step.seconds),
+                        ),
+                    )
+                }
+            }
+            HiitPhase.COOLDOWN -> {
+                val cue = context.getString(R.string.tts_hiit_cooldown_cue)
+                Notifier.show(context, cue)
+                if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.COOLDOWN, indoor = settings.hiitIndoorMode)
+                if (settings.hiitVoice) speak(context, cue)
+            }
+            else -> {
+                val intensity = step.phase.asIntensity() ?: IntervalIntensity.RUN
+                val cue = phaseCue(context, intensity, step.seconds)
+                Notifier.show(context, cue)
+                if (settings.hiitSounds) SoundPlayer.playPhaseTone(step.phase, indoor = settings.hiitIndoorMode)
+                if (settings.hiitVoice) speak(context, cue)
+            }
+        }
+        if (settings.hiitSounds && step.seconds > AlarmReceiver.COUNTDOWN_LEAD_SECONDS + 2) {
+            scheduler.scheduleHiitCountdown(step.seconds - AlarmReceiver.COUNTDOWN_LEAD_SECONDS)
+        }
     }
 
     /**
@@ -195,6 +288,17 @@ object HiitSession {
 
     fun runCue(context: Context, runSeconds: Int): String =
         context.getString(R.string.tts_hiit_cue_run, speakDuration(context, runSeconds))
+
+    fun jogCue(context: Context, seconds: Int): String =
+        context.getString(R.string.tts_hiit_cue_jog, speakDuration(context, seconds))
+
+    /** Aviso hablado del nivel de intensidad de un paso del plan personalizado. */
+    fun phaseCue(context: Context, intensity: IntervalIntensity, seconds: Int): String =
+        when (intensity) {
+            IntervalIntensity.WALK -> walkCue(context, seconds)
+            IntervalIntensity.JOG -> jogCue(context, seconds)
+            IntervalIntensity.RUN -> runCue(context, seconds)
+        }
 
     fun speak(context: Context, text: String) {
         // TtsSpeaker encola el texto hasta que el motor esté listo y se apaga

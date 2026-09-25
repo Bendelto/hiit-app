@@ -25,6 +25,8 @@ data class AppSettings(
     val hiitActive: Boolean = false,
     // Sonidos de cuenta regresiva (pitidos) y guía de voz en HIIT
     val hiitSounds: Boolean = true,
+    // Modo interior: suaviza el tono agudo de "correr" en espacios cerrados (gimnasio)
+    val hiitIndoorMode: Boolean = false,
     val hiitVoice: Boolean = true,
     // Modo caminadora: el celular queda fijo, así que el sensor no cuenta pasos;
     // la distancia real se anota a mano al terminar la sesión
@@ -60,11 +62,24 @@ data class AppSettings(
     val hiitSessionsHistory: Map<String, Int> = emptyMap(),
     // Onboarding de primer uso ya mostrado
     val onboardingSeen: Boolean = false,
+    // Función Pro desbloqueada (billing real pendiente; hoy es un candado visual)
+    val hiitProUnlocked: Boolean = false,
+    // Perfiles de intervalos personalizados (JSON, ver CustomProfiles.kt)
+    val hiitCustomProfilesJson: String = "",
+    // Plan en vivo de una sesión personalizada: pasos expandidos (modo × reps).
+    // Vacío = la sesión es la clásica de caminata/carrera fijas.
+    val hiitPlanJson: String = "",
+    // Índice (0-based) del siguiente paso del plan; el paso en curso es el anterior.
+    val hiitPlanIndex: Int = 0,
 ) {
     // Duración estimada de la sesión. Con rondas infinitas (0) solo cuenta
     // calentamiento y enfriamiento: la sesión dura lo que aguante el usuario.
     val hiitTotalSeconds: Int
         get() = hiitWarmupSeconds + hiitRounds * (hiitWalkSeconds + hiitRunSeconds) + hiitCooldownSeconds
+
+    /** Pasos del plan personalizado en vivo; null cuando la sesión es la clásica. */
+    val planSteps: List<PlanStep>?
+        get() = parseSteps(hiitPlanJson).takeIf { it.isNotEmpty() }
 }
 
 class SettingsRepository(private val context: Context) {
@@ -77,6 +92,7 @@ class SettingsRepository(private val context: Context) {
         val HIIT_COOLDOWN_SECONDS = intPreferencesKey("hiit_cooldown_seconds")
         val HIIT_ACTIVE = booleanPreferencesKey("hiit_active")
         val HIIT_SOUNDS = booleanPreferencesKey("hiit_sounds")
+        val HIIT_INDOOR_MODE = booleanPreferencesKey("hiit_indoor_mode")
         val HIIT_VOICE = booleanPreferencesKey("hiit_voice")
         val HIIT_TREADMILL_MODE = booleanPreferencesKey("hiit_treadmill_mode")
         val HIIT_PHASE = stringPreferencesKey("hiit_phase")
@@ -96,6 +112,10 @@ class SettingsRepository(private val context: Context) {
         val ACTIVE_DAYS = stringPreferencesKey("active_days")
         val HIIT_SESSIONS_HISTORY = stringPreferencesKey("hiit_sessions_history")
         val ONBOARDING_SEEN = booleanPreferencesKey("onboarding_seen")
+        val HIIT_PRO_UNLOCKED = booleanPreferencesKey("hiit_pro_unlocked")
+        val HIIT_CUSTOM_PROFILES = stringPreferencesKey("hiit_custom_profiles")
+        val HIIT_PLAN_JSON = stringPreferencesKey("hiit_plan_json")
+        val HIIT_PLAN_INDEX = intPreferencesKey("hiit_plan_index")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -107,6 +127,7 @@ class SettingsRepository(private val context: Context) {
             hiitCooldownSeconds = prefs[Keys.HIIT_COOLDOWN_SECONDS] ?: 120,
             hiitActive = prefs[Keys.HIIT_ACTIVE] ?: false,
             hiitSounds = prefs[Keys.HIIT_SOUNDS] ?: true,
+            hiitIndoorMode = prefs[Keys.HIIT_INDOOR_MODE] ?: false,
             hiitVoice = prefs[Keys.HIIT_VOICE] ?: true,
             hiitTreadmillMode = prefs[Keys.HIIT_TREADMILL_MODE] ?: false,
             hiitPhase = prefs[Keys.HIIT_PHASE] ?: "",
@@ -127,6 +148,10 @@ class SettingsRepository(private val context: Context) {
                 .split(";").filter { it.isNotBlank() }.toSet(),
             hiitSessionsHistory = parseSessionsHistory(prefs[Keys.HIIT_SESSIONS_HISTORY] ?: ""),
             onboardingSeen = prefs[Keys.ONBOARDING_SEEN] ?: false,
+            hiitProUnlocked = prefs[Keys.HIIT_PRO_UNLOCKED] ?: false,
+            hiitCustomProfilesJson = prefs[Keys.HIIT_CUSTOM_PROFILES] ?: "",
+            hiitPlanJson = prefs[Keys.HIIT_PLAN_JSON] ?: "",
+            hiitPlanIndex = prefs[Keys.HIIT_PLAN_INDEX] ?: 0,
         )
     }
 
@@ -155,6 +180,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setHiitSounds(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.HIIT_SOUNDS] = enabled
+        }
+    }
+
+    suspend fun setHiitIndoorMode(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_INDOOR_MODE] = enabled
         }
     }
 
@@ -196,6 +227,8 @@ class SettingsRepository(private val context: Context) {
             prefs.remove(Keys.HIIT_PAUSED_SECONDS)
             prefs.remove(Keys.HIIT_STARTED_AT)
             prefs.remove(Keys.HIIT_STEP_BASELINE)
+            prefs.remove(Keys.HIIT_PLAN_JSON)
+            prefs.remove(Keys.HIIT_PLAN_INDEX)
         }
     }
 
@@ -258,6 +291,32 @@ class SettingsRepository(private val context: Context) {
     /** Marca el onboarding de primer uso como visto (o lo resetea para reverlo). */
     suspend fun setOnboardingSeen(seen: Boolean) {
         context.dataStore.edit { prefs -> prefs[Keys.ONBOARDING_SEEN] = seen }
+    }
+
+    suspend fun setProUnlocked(unlocked: Boolean) {
+        context.dataStore.edit { prefs -> prefs[Keys.HIIT_PRO_UNLOCKED] = unlocked }
+    }
+
+    /** Guarda el listado completo de perfiles de intervalos personalizados. */
+    suspend fun saveCustomProfiles(profiles: List<IntervalProfile>) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_CUSTOM_PROFILES] = serializeProfiles(profiles)
+        }
+    }
+
+    /** Instala el plan de una sesión personalizada y rebobina el índice a 0. */
+    suspend fun setSessionPlan(steps: List<PlanStep>) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_PLAN_JSON] = serializeSteps(steps)
+            prefs[Keys.HIIT_PLAN_INDEX] = 0
+        }
+    }
+
+    /** Avanza el puntero del plan personalizado (siguiente paso a ejecutar). */
+    suspend fun setPlanIndex(index: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_PLAN_INDEX] = index
+        }
     }
 
     private fun addActiveDay(

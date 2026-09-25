@@ -81,9 +81,9 @@ import kotlinx.coroutines.launch
 
 // ─── Gradientes para el workout ─────────────────────────────────────────────
 
-// Fuego para la alta intensidad: rojo profundo → naranja → ámbar
+// Fuego para la alta intensidad: rojo profundo → rojo vivo
 private val RunGradient = Brush.verticalGradient(
-    listOf(Color(0xFFB71C1C), Color(0xFFE64A19), Color(0xFFFF8F00)),
+    listOf(Color(0xFF8E0000), Color(0xFFB71C1C), Color(0xFFE53935)),
 )
 private val WalkGradient = Brush.verticalGradient(
     // Green500 arriba, como la pantalla de sesión completada: la menta se
@@ -95,6 +95,10 @@ private val PrepGradient = Brush.verticalGradient(
 )
 private val CooldownGradient = Brush.verticalGradient(
     listOf(Aqua500, Green700),
+)
+// Trote: naranja → naranja profundo (entre caminata y carrera)
+private val JogGradient = Brush.verticalGradient(
+    listOf(Color(0xFFF97316), Color(0xFFD84315)),
 )
 
 // Si en la primera caminata el sensor registra menos pasos que esto, se asume
@@ -116,9 +120,14 @@ fun HiitWorkoutScreen(
 ) {
     val isPrep = settings.hiitPhase == HiitPhase.PREP.name
     val isRun = settings.hiitPhase == HiitPhase.RUN.name
+    val isJog = settings.hiitPhase == HiitPhase.JOG.name
     val isCooldown = settings.hiitPhase == HiitPhase.COOLDOWN.name
     val isPaused = settings.hiitPausedSeconds > 0
-    val phaseTotalSec = when {
+    // Plan de sesión personalizada (null = sesión clásica)
+    val plan = settings.planSteps
+    val phaseTotalSec = plan
+        ?.getOrNull((settings.hiitRound - 1).coerceAtLeast(0))
+        ?.seconds ?: when {
         isPrep -> settings.hiitWarmupSeconds
         isRun -> settings.hiitRunSeconds
         isCooldown -> settings.hiitCooldownSeconds
@@ -177,6 +186,9 @@ fun HiitWorkoutScreen(
             // con el modo ya activo no hace falta preguntar
             if (s.hiitStepBaseline < 0 || s.hiitTreadmillMode) break
             if (s.hiitPausedSeconds > 0) continue
+            // En sesiones personalizadas los tiempos no salen de hiitWalkSeconds:
+            // la detección de caminadora queda descartada para no falsear.
+            if (s.planSteps != null) break
             if (s.hiitPhase != HiitPhase.WALK.name || s.hiitRound > 1) continue
             // La detección solo tiene sentido al inicio de la sesión
             if (s.hiitStartedAt > 0 && System.currentTimeMillis() - s.hiitStartedAt > TREADMILL_ASK_MAX_MS) break
@@ -199,6 +211,7 @@ fun HiitWorkoutScreen(
 
     val background = when {
         isPrep -> PrepGradient
+        isJog -> JogGradient
         isRun -> RunGradient
         isCooldown -> CooldownGradient
         else -> WalkGradient
@@ -207,20 +220,23 @@ fun HiitWorkoutScreen(
     // Colores del anillo
     val arcColorStart = when {
         isPrep -> Blue300
-        isRun -> Color(0xFFFFCA28)
+        isJog -> Color(0xFFFFB74D)
+        isRun -> Color(0xFFEF5350)
         isCooldown -> Blue300
         else -> Mint300
     }
     val arcColorEnd = when {
         isPrep -> Blue500
-        isRun -> Color(0xFFFF6D00)
+        isJog -> Color(0xFFF57C00)
+        isRun -> Color(0xFFB71C1C)
         isCooldown -> Green700
         else -> Mint500
     }
     val trackColor = Color.White.copy(alpha = 0.12f)
     val glowColor = when {
         isPrep -> Blue300.copy(alpha = 0.3f)
-        isRun -> Color(0xFFFF8F00).copy(alpha = 0.35f)
+        isJog -> Color(0xFFFF9800).copy(alpha = 0.35f)
+        isRun -> Color(0xFFE53935).copy(alpha = 0.4f)
         isCooldown -> Blue300.copy(alpha = 0.3f)
         else -> Mint300.copy(alpha = 0.3f)
     }
@@ -257,6 +273,11 @@ fun HiitWorkoutScreen(
             ) {
                 Text(
                     when {
+                        plan != null -> stringResource(
+                            R.string.hiit_step_of,
+                            settings.hiitRound,
+                            plan.size,
+                        )
                         isCooldown -> stringResource(R.string.hiit_last_phase)
                         // Rondas infinitas: solo se muestra la ronda actual
                         settings.hiitRounds <= 0 -> stringResource(
@@ -282,7 +303,7 @@ fun HiitWorkoutScreen(
 
             // Fase con animación de cambio
             AnimatedContent(
-                targetState = Triple(isPrep || isCooldown, isRun, isPaused),
+                targetState = Triple(isPrep || isCooldown, isRun || isJog, isPaused),
                 transitionSpec = {
                     (fadeIn(tween(300)) + scaleIn(
                         initialScale = 0.8f,
@@ -296,6 +317,7 @@ fun HiitWorkoutScreen(
                         paused -> stringResource(R.string.hiit_phase_paused)
                         isPrep -> stringResource(R.string.hiit_phase_prep)
                         isCooldown -> stringResource(R.string.hiit_phase_cooldown)
+                        isJog -> stringResource(R.string.hiit_phase_jog)
                         running -> stringResource(R.string.hiit_phase_run)
                         else -> stringResource(R.string.hiit_phase_walk)
                     },
@@ -399,6 +421,7 @@ fun HiitWorkoutScreen(
                             isPaused -> stringResource(R.string.hiit_sub_paused)
                             isPrep -> stringResource(R.string.hiit_sub_prep)
                             isCooldown -> stringResource(R.string.hiit_sub_cooldown)
+                            isJog -> stringResource(R.string.hiit_sub_jog)
                             isRun -> stringResource(R.string.hiit_sub_run)
                             else -> stringResource(R.string.hiit_sub_walk)
                         },
@@ -411,8 +434,16 @@ fun HiitWorkoutScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "${formatDuration(context, settings.hiitWalkSeconds)}   ·   " +
-                    formatDuration(context, settings.hiitRunSeconds),
+                if (plan != null) {
+                    stringResource(
+                        R.string.hiit_step_time_of,
+                        formatDuration(context, phaseTotalSec),
+                        formatDuration(context, plan.sumOf { it.seconds }),
+                    )
+                } else {
+                    "${formatDuration(context, settings.hiitWalkSeconds)}   ·   " +
+                        formatDuration(context, settings.hiitRunSeconds)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.5f),
             )

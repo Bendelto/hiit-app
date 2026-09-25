@@ -1,23 +1,32 @@
 package com.example.hiit.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +56,7 @@ fun HiitConfigScreen(
     repository: SettingsRepository,
     scope: kotlinx.coroutines.CoroutineScope,
     onBack: () -> Unit,
+    onCustomProfiles: () -> Unit,
 ) {
     // Hoja abierta ahora mismo; null = ninguna
     var openSheet by remember { mutableStateOf<HiitSheet?>(null) }
@@ -136,6 +147,72 @@ fun HiitConfigScreen(
                 },
                 onClick = { openSheet = HiitSheet.COOLDOWN },
             )
+
+            // Intervalos personalizados (función Pro): la pantalla destino
+            // gestiona el candado si la versión Pro no está desbloqueada.
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onCustomProfiles),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Default.Timeline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.hiit_custom_profiles),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            softWrap = false,
+                        )
+                        Text(
+                            stringResource(R.string.hiit_custom_profiles_sub),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    // 5 toques seguidos sobre el sello alternan el bloqueo Pro
+                    // (método oculto de pruebas hasta que llegue el billing).
+                    ProBadge(
+                        onSecretTaps = {
+                            scope.launch {
+                                repository.setProUnlocked(!settings.hiitProUnlocked)
+                            }
+                        },
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        Icons.AutoMirrored.Default.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         Column(
@@ -194,6 +271,14 @@ fun HiitConfigScreen(
                         checked = settings.hiitSounds,
                         onChange = { scope.launch { repository.setHiitSounds(it) } },
                     )
+                    if (settings.hiitSounds) {
+                        ActivationSwitch(
+                            title = stringResource(R.string.hiit_indoor_title),
+                            subtitle = stringResource(R.string.hiit_indoor_subtitle),
+                            checked = settings.hiitIndoorMode,
+                            onChange = { scope.launch { repository.setHiitIndoorMode(it) } },
+                        )
+                    }
                     ActivationSwitch(
                         title = stringResource(R.string.hiit_voice_title),
                         subtitle = stringResource(R.string.hiit_voice_subtitle),

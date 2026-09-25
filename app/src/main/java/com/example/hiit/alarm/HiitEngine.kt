@@ -42,6 +42,14 @@ object HiitEngine {
         HiitNotificationService.start(context)
 
         val scheduler = AlarmScheduler(context)
+
+        // Sesión personalizada: el plan guardado manda; la fase que trae la
+        // alarma solo etiqueta el aviso, el paso real lo marca hiitPlanIndex.
+        settings.planSteps?.let { steps ->
+            advancePlan(context, settings, steps, repo, scheduler)
+            return
+        }
+
         when (targetPhase) {
             // Se agotó el tiempo de caminata: toca correr
             HiitPhase.RUN -> {
@@ -115,7 +123,31 @@ object HiitEngine {
             HiitPhase.PREP -> Unit
             // Fin del enfriamiento: la sesión termina
             HiitPhase.COOLDOWN -> finishSession(context, settings)
+            // JOG solo existe dentro de un plan personalizado, que se atiende
+            // en advancePlan antes de llegar a este when
+            else -> Unit
         }
+    }
+
+    /**
+     * Avanza una sesión personalizada siguiendo el plan guardado. El puntero
+     * [AppSettings.hiitPlanIndex] marca el siguiente paso: la alarma programada
+     * al entrar en el paso anterior dispara este avance; cuando el plan se
+     * agota, la sesión termina.
+     */
+    private suspend fun advancePlan(
+        context: Context,
+        settings: com.example.hiit.data.AppSettings,
+        steps: List<com.example.hiit.data.PlanStep>,
+        repo: SettingsRepository,
+        scheduler: AlarmScheduler,
+    ) {
+        val index = settings.hiitPlanIndex
+        if (index >= steps.size) {
+            finishSession(context, settings)
+            return
+        }
+        HiitSession.enterPlanStep(context, repo, settings, scheduler, steps, index)
     }
 
     /** Aviso final de la sesión: notificación, tono, voz y registro del logro. */
@@ -127,7 +159,7 @@ object HiitEngine {
         // El aviso final se queda un poco más: el usuario puede haber dejado
         // el teléfono apartado al terminar la sesión
         Notifier.show(context, finishMessage, timeoutMs = 8_000)
-        if (settings.hiitSounds) SoundPlayer.playFinishTone()
+        if (settings.hiitSounds) SoundPlayer.playFinishTone(indoor = settings.hiitIndoorMode)
         if (settings.hiitVoice) HiitSession.speak(context, finishMessage)
         val repo = SettingsRepository(context)
         val steps = HiitSession.measureSteps(context, settings.hiitStepBaseline)
@@ -151,13 +183,18 @@ object HiitEngine {
         val cue = when (phase) {
             HiitPhase.RUN -> HiitSession.runCue(context, settings.hiitRunSeconds)
             HiitPhase.WALK -> HiitSession.walkCue(context, settings.hiitWalkSeconds)
+            HiitPhase.JOG -> HiitSession.jogCue(context, currentPlanStepSeconds(settings))
             HiitPhase.PREP -> context.getString(R.string.tts_hiit_prep)
             HiitPhase.COOLDOWN -> context.getString(R.string.tts_hiit_cooldown_cue)
         }
         Notifier.show(context, cue)
-        if (settings.hiitSounds) SoundPlayer.playPhaseTone(phase)
+        if (settings.hiitSounds) SoundPlayer.playPhaseTone(phase, indoor = settings.hiitIndoorMode)
         if (settings.hiitVoice) HiitSession.speak(context, cue)
     }
+
+    /** Duración del paso en curso de un plan personalizado (fase anunciada). */
+    private fun currentPlanStepSeconds(settings: com.example.hiit.data.AppSettings): Int =
+        settings.planSteps?.getOrNull(settings.hiitRound - 1)?.seconds ?: settings.hiitRunSeconds
 
     /** Los pitidos 3-2-1 solo tienen sentido si la fase dura más que la cuenta regresiva. */
     private fun scheduleCountdownIfFits(

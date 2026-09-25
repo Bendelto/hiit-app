@@ -7,6 +7,7 @@
     <string name="notif_hiit_paused">HIIT · Pausado</string>
     <string name="notif_hiit_prep">HIIT · Prepárate</string>
     <string name="notif_hiit_run">HIIT · ¡Corre!</string>
+    <string name="notif_hiit_jog">HIIT · Trote</string>
     <string name="notif_hiit_cooldown">HIIT · Enfriamiento</string>
     <string name="notif_hiit_walk">HIIT · Camina</string>
     <string name="notif_hiit_session_running">Sesión en curso</string>
@@ -20,6 +21,7 @@
     <string name="tts_hiit_start">Prepárate. La sesión empieza en %1$s.</string>
     <string name="tts_hiit_cue_walk">Camina durante %1$s</string>
     <string name="tts_hiit_cue_run">Corre durante %1$s</string>
+    <string name="tts_hiit_cue_jog">Trote durante %1$s</string>
     <string name="tts_hiit_prep">Prepárate</string>
     <string name="tts_hiit_cooldown_cue">Enfriamiento. Ve reduciendo el ritmo.</string>
     <string name="tts_duration_minute_one">1 minuto</string>
