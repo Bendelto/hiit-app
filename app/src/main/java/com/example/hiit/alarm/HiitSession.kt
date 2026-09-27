@@ -91,7 +91,7 @@ object HiitSession {
                 System.currentTimeMillis() + warmupSeconds * 1_000L,
             )
             repo.setHiitPending(HiitPhase.WALK.name, rounds)
-            if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.PREP, indoor = settings.hiitIndoorMode)
+            if (settings.hiitSounds) SoundPlayer.playPhaseTone(context, HiitPhase.PREP, indoor = settings.hiitIndoorMode)
             if (settings.hiitVibration) VibrationCues.phaseChange(context, HiitPhase.PREP)
             if (settings.hiitVoice) {
                 speak(
@@ -115,7 +115,7 @@ object HiitSession {
             repo.setHiitPending(HiitPhase.RUN.name, rounds)
             val cue = walkCue(context, walkSeconds)
             Notifier.show(context, cue)
-            if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.WALK, indoor = settings.hiitIndoorMode)
+            if (settings.hiitSounds) SoundPlayer.playPhaseTone(context, HiitPhase.WALK, indoor = settings.hiitIndoorMode)
             if (settings.hiitVibration) VibrationCues.phaseChange(context, HiitPhase.WALK)
             if (settings.hiitVoice) speak(context, cue)
             scheduler.scheduleHiitPhase(HiitPhase.RUN, walkSeconds, rounds)
@@ -184,7 +184,7 @@ object HiitSession {
         if (settings.hiitVibration) VibrationCues.phaseChange(context, step.phase)
         when (step.phase) {
             HiitPhase.PREP -> {
-                if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.PREP, indoor = settings.hiitIndoorMode)
+                if (settings.hiitSounds) SoundPlayer.playPhaseTone(context, HiitPhase.PREP, indoor = settings.hiitIndoorMode)
                 if (settings.hiitVoice) {
                     speak(
                         context,
@@ -198,14 +198,14 @@ object HiitSession {
             HiitPhase.COOLDOWN -> {
                 val cue = context.getString(R.string.tts_hiit_cooldown_cue)
                 Notifier.show(context, cue)
-                if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.COOLDOWN, indoor = settings.hiitIndoorMode)
+                if (settings.hiitSounds) SoundPlayer.playPhaseTone(context, HiitPhase.COOLDOWN, indoor = settings.hiitIndoorMode)
                 if (settings.hiitVoice) speak(context, cue)
             }
             else -> {
                 val intensity = step.phase.asIntensity() ?: IntervalIntensity.RUN
                 val cue = phaseCue(context, intensity, step.seconds)
                 Notifier.show(context, cue)
-                if (settings.hiitSounds) SoundPlayer.playPhaseTone(step.phase, indoor = settings.hiitIndoorMode)
+                if (settings.hiitSounds) SoundPlayer.playPhaseTone(context, step.phase, indoor = settings.hiitIndoorMode)
                 if (settings.hiitVoice) speak(context, cue)
             }
         }

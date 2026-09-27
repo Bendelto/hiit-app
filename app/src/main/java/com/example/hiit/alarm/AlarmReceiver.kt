@@ -25,7 +25,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     // Pitidos de cuenta regresiva antes del cambio de fase HIIT
                     intent.getBooleanExtra(EXTRA_COUNTDOWN, false) -> {
                         if (settings.hiitActive) {
-                            if (settings.hiitSounds) SoundPlayer.playCountdownBeeps()
+                            if (settings.hiitSounds) SoundPlayer.playCountdownBeeps(appContext)
                             if (settings.hiitVibration) VibrationCues.countdown(appContext)
                         }
                     }

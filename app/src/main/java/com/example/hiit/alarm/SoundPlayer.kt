@@ -1,7 +1,9 @@
 package com.example.hiit.alarm
 
+import android.content.Context
 import android.media.AudioManager
 import android.media.ToneGenerator
+import com.example.hiit.util.AudioFocusDucker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -22,8 +24,9 @@ object SoundPlayer {
     private data class Step(val tone: Int, val durationMs: Int, val sharp: Boolean = false)
 
     /** 3 pitidos cortos, uno por segundo: la cuenta regresiva 3, 2, 1. */
-    fun playCountdownBeeps() {
+    fun playCountdownBeeps(context: Context) {
         play(
+            context,
             listOf(
                 Step(ToneGenerator.TONE_PROP_BEEP, 120),
                 Step(ToneGenerator.TONE_PROP_BEEP, 120),
@@ -34,10 +37,11 @@ object SoundPlayer {
     }
 
     /** Tono del cambio de fase: caminar es calmado, correr es alto y enérgico. */
-    fun playPhaseTone(phase: HiitPhase, indoor: Boolean = false) {
+    fun playPhaseTone(context: Context, phase: HiitPhase, indoor: Boolean = false) {
         when (phase) {
             // Tres pitidos ascendentes: prepárate
             HiitPhase.PREP -> play(
+                context,
                 listOf(
                     Step(ToneGenerator.TONE_PROP_BEEP, 100),
                     Step(ToneGenerator.TONE_PROP_BEEP, 100),
@@ -45,9 +49,10 @@ object SoundPlayer {
                 ),
             )
             // Tono medio largo: empieza a caminar
-            HiitPhase.WALK -> play(listOf(Step(ToneGenerator.TONE_PROP_BEEP2, 400)))
+            HiitPhase.WALK -> play(context, listOf(Step(ToneGenerator.TONE_PROP_BEEP2, 400)))
             // Tono medio con ligero ascenso: sube a trote
             HiitPhase.JOG -> play(
+                context,
                 listOf(
                     Step(ToneGenerator.TONE_PROP_BEEP2, 200),
                     Step(ToneGenerator.TONE_CDMA_HIGH_L, 250),
@@ -55,6 +60,7 @@ object SoundPlayer {
             )
             // Dos pitidos agudos rápidos: ¡a correr!
             HiitPhase.RUN -> play(
+                context,
                 listOf(
                     Step(ToneGenerator.TONE_CDMA_HIGH_L, 150, sharp = true),
                     Step(ToneGenerator.TONE_CDMA_HIGH_L, 250, sharp = true),
@@ -63,6 +69,7 @@ object SoundPlayer {
             )
             // Tono suave y calmado: reduce el ritmo poco a poco
             HiitPhase.COOLDOWN -> play(
+                context,
                 listOf(
                     Step(ToneGenerator.TONE_PROP_BEEP2, 350),
                     Step(ToneGenerator.TONE_PROP_BEEP, 350),
@@ -71,8 +78,9 @@ object SoundPlayer {
         }
     }
     /** Ascendente doble: sesión terminada. */
-    fun playFinishTone(indoor: Boolean = false) {
+    fun playFinishTone(context: Context, indoor: Boolean = false) {
         play(
+            context,
             listOf(
                 Step(ToneGenerator.TONE_PROP_ACK, 250),
                 Step(ToneGenerator.TONE_CDMA_HIGH_L, 450, sharp = true),
@@ -81,8 +89,12 @@ object SoundPlayer {
         )
     }
 
-    private fun play(steps: List<Step>, stepMs: Long? = null, indoor: Boolean = false) {
+    private fun play(context: Context, steps: List<Step>, stepMs: Long? = null, indoor: Boolean = false) {
         CoroutineScope(Dispatchers.Default).launch {
+            // Ducking: cubre toda la secuencia más un margen de 500 ms para que
+            // la música ajena no suba justo al cortar el último tono
+            val totalMs = steps.sumOf { stepMs ?: (it.durationMs + BEEP_GAP_MS) } + 300 + 500
+            AudioFocusDucker.duck(context, totalMs)
             var generator: ToneGenerator? = null
             var generatorVolume = -1
             try {

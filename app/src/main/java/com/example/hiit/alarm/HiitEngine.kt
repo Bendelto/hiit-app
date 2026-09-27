@@ -159,7 +159,7 @@ object HiitEngine {
         // El aviso final se queda un poco más: el usuario puede haber dejado
         // el teléfono apartado al terminar la sesión
         Notifier.show(context, finishMessage, timeoutMs = 8_000)
-        if (settings.hiitSounds) SoundPlayer.playFinishTone(indoor = settings.hiitIndoorMode)
+        if (settings.hiitSounds) SoundPlayer.playFinishTone(context, indoor = settings.hiitIndoorMode)
         if (settings.hiitVibration) VibrationCues.finish(context)
         if (settings.hiitVoice) HiitSession.speak(context, finishMessage)
         val repo = SettingsRepository(context)
@@ -189,7 +189,7 @@ object HiitEngine {
             HiitPhase.COOLDOWN -> context.getString(R.string.tts_hiit_cooldown_cue)
         }
         Notifier.show(context, cue)
-        if (settings.hiitSounds) SoundPlayer.playPhaseTone(phase, indoor = settings.hiitIndoorMode)
+        if (settings.hiitSounds) SoundPlayer.playPhaseTone(context, phase, indoor = settings.hiitIndoorMode)
         if (settings.hiitVibration) VibrationCues.phaseChange(context, phase)
         if (settings.hiitVoice) HiitSession.speak(context, cue)
     }

@@ -5,10 +5,12 @@ import android.media.AudioAttributes
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import com.example.hiit.util.AudioFocusDucker
 import java.util.Locale
 
 class TtsSpeaker(context: Context) {
 
+    private val appContext = context.applicationContext
     private var tts: TextToSpeech? = null
     private var ready = false
     private var pendingText: String? = null
@@ -47,7 +49,7 @@ class TtsSpeaker(context: Context) {
             ready = true
             // El texto pedido antes de que el motor estuviera listo se habla ahora
             pendingText?.let { text ->
-                engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
+                speakNow(engine, text)
             }
             pendingText = null
         }
@@ -56,11 +58,26 @@ class TtsSpeaker(context: Context) {
     fun speak(text: String) {
         val engine = tts
         if (ready && engine != null) {
-            engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
+            speakNow(engine, text)
         } else {
             pendingText = text
         }
     }
+
+    /**
+     * Habla el texto pidiendo antes el foco de audio con ducking: la música
+     * de otras apps baja mientras suena la frase y sube al soltarlo. La
+     * duración se estima por longitud del texto; si llega otra señal antes,
+     * la liberación se aplaza (ver [AudioFocusDucker]).
+     */
+    private fun speakNow(engine: TextToSpeech, text: String) {
+        AudioFocusDucker.duck(appContext, estimateSpeechMs(text))
+        engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
+    }
+
+    /** Estimación generosa de la duración hablada: base + ~70 ms por carácter. */
+    private fun estimateSpeechMs(text: String): Long =
+        (1_500L + text.length * 70L).coerceAtMost(10_000L)
 
     fun shutdown() {
         tts?.stop()
