@@ -160,6 +160,7 @@ object HiitEngine {
         // el teléfono apartado al terminar la sesión
         Notifier.show(context, finishMessage, timeoutMs = 8_000)
         if (settings.hiitSounds) SoundPlayer.playFinishTone(indoor = settings.hiitIndoorMode)
+        if (settings.hiitVibration) VibrationCues.finish(context)
         if (settings.hiitVoice) HiitSession.speak(context, finishMessage)
         val repo = SettingsRepository(context)
         val steps = HiitSession.measureSteps(context, settings.hiitStepBaseline)
@@ -189,6 +190,7 @@ object HiitEngine {
         }
         Notifier.show(context, cue)
         if (settings.hiitSounds) SoundPlayer.playPhaseTone(phase, indoor = settings.hiitIndoorMode)
+        if (settings.hiitVibration) VibrationCues.phaseChange(context, phase)
         if (settings.hiitVoice) HiitSession.speak(context, cue)
     }
 

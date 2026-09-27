@@ -92,6 +92,7 @@ object HiitSession {
             )
             repo.setHiitPending(HiitPhase.WALK.name, rounds)
             if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.PREP, indoor = settings.hiitIndoorMode)
+            if (settings.hiitVibration) VibrationCues.phaseChange(context, HiitPhase.PREP)
             if (settings.hiitVoice) {
                 speak(
                     context,
@@ -115,6 +116,7 @@ object HiitSession {
             val cue = walkCue(context, walkSeconds)
             Notifier.show(context, cue)
             if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.WALK, indoor = settings.hiitIndoorMode)
+            if (settings.hiitVibration) VibrationCues.phaseChange(context, HiitPhase.WALK)
             if (settings.hiitVoice) speak(context, cue)
             scheduler.scheduleHiitPhase(HiitPhase.RUN, walkSeconds, rounds)
             if (settings.hiitSounds && walkSeconds > AlarmReceiver.COUNTDOWN_LEAD_SECONDS + 2) {
@@ -179,6 +181,7 @@ object HiitSession {
         val nextPhase = steps.getOrNull(index + 1)?.phase ?: HiitPhase.COOLDOWN
         scheduler.scheduleHiitPhase(nextPhase, step.seconds, 0)
         repo.setHiitPending(nextPhase.name, 0)
+        if (settings.hiitVibration) VibrationCues.phaseChange(context, step.phase)
         when (step.phase) {
             HiitPhase.PREP -> {
                 if (settings.hiitSounds) SoundPlayer.playPhaseTone(HiitPhase.PREP, indoor = settings.hiitIndoorMode)

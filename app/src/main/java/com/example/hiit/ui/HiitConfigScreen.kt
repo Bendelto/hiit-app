@@ -269,6 +269,12 @@ fun HiitConfigScreen(
                         )
                     }
                     ActivationSwitch(
+                        title = stringResource(R.string.hiit_vibration_title),
+                        subtitle = stringResource(R.string.hiit_vibration_subtitle),
+                        checked = settings.hiitVibration,
+                        onChange = { scope.launch { repository.setHiitVibration(it) } },
+                    )
+                    ActivationSwitch(
                         title = stringResource(R.string.hiit_voice_title),
                         subtitle = stringResource(R.string.hiit_voice_subtitle),
                         checked = settings.hiitVoice,

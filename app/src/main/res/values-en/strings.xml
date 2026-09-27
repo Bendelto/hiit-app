@@ -45,6 +45,8 @@
     <string name="hiit_stat_distance">Distance</string>
     <string name="hiit_sounds_title">Countdown sounds</string>
     <string name="hiit_sounds_subtitle">Beeps 3, 2, 1 before each change and tones per phase</string>
+    <string name="hiit_vibration_title">Vibration</string>
+    <string name="hiit_vibration_subtitle">Vibrates on phase changes and during the countdown — handy with the phone in your pocket</string>
     <string name="hiit_indoor_title">Indoor mode</string>
     <string name="hiit_indoor_subtitle">Softens the sharp run beep in enclosed spaces like the gym</string>
     <string name="hiit_voice_title">Voice guidance</string>

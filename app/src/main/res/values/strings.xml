@@ -45,6 +45,8 @@
     <string name="hiit_stat_distance">Distancia</string>
     <string name="hiit_sounds_title">Sonidos de cuenta regresiva</string>
     <string name="hiit_sounds_subtitle">Pitidos 3, 2, 1 antes de cada cambio y tonos por fase</string>
+    <string name="hiit_vibration_title">Vibración</string>
+    <string name="hiit_vibration_subtitle">Vibra al cambiar de fase y en la cuenta regresiva: útil con el teléfono en el bolsillo</string>
     <string name="hiit_indoor_title">Modo interior</string>
     <string name="hiit_indoor_subtitle">Suaviza el pitido agudo de «correr» para espacios cerrados como el gimnasio</string>
     <string name="hiit_voice_title">Guía de voz</string>

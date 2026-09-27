@@ -25,6 +25,8 @@ data class AppSettings(
     val hiitActive: Boolean = false,
     // Sonidos de cuenta regresiva (pitidos) y guía de voz en HIIT
     val hiitSounds: Boolean = true,
+    // Vibración de aviso al cambiar de fase y en la cuenta regresiva
+    val hiitVibration: Boolean = true,
     // Modo interior: suaviza el tono agudo de "correr" en espacios cerrados (gimnasio)
     val hiitIndoorMode: Boolean = false,
     val hiitVoice: Boolean = true,
@@ -95,6 +97,7 @@ class SettingsRepository(private val context: Context) {
         val HIIT_ACTIVE = booleanPreferencesKey("hiit_active")
         val HIIT_SOUNDS = booleanPreferencesKey("hiit_sounds")
         val HIIT_INDOOR_MODE = booleanPreferencesKey("hiit_indoor_mode")
+        val HIIT_VIBRATION = booleanPreferencesKey("hiit_vibration")
         val HIIT_VOICE = booleanPreferencesKey("hiit_voice")
         val HIIT_TREADMILL_MODE = booleanPreferencesKey("hiit_treadmill_mode")
         val HIIT_PHASE = stringPreferencesKey("hiit_phase")
@@ -131,6 +134,7 @@ class SettingsRepository(private val context: Context) {
             hiitActive = prefs[Keys.HIIT_ACTIVE] ?: false,
             hiitSounds = prefs[Keys.HIIT_SOUNDS] ?: true,
             hiitIndoorMode = prefs[Keys.HIIT_INDOOR_MODE] ?: false,
+            hiitVibration = prefs[Keys.HIIT_VIBRATION] ?: true,
             hiitVoice = prefs[Keys.HIIT_VOICE] ?: true,
             hiitTreadmillMode = prefs[Keys.HIIT_TREADMILL_MODE] ?: false,
             hiitPhase = prefs[Keys.HIIT_PHASE] ?: "",
@@ -190,6 +194,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setHiitIndoorMode(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.HIIT_INDOOR_MODE] = enabled
+        }
+    }
+
+    suspend fun setHiitVibration(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_VIBRATION] = enabled
         }
     }
 

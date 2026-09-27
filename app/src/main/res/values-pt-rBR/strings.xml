@@ -45,6 +45,8 @@
     <string name="hiit_stat_distance">Distância</string>
     <string name="hiit_sounds_title">Sons de contagem regressiva</string>
     <string name="hiit_sounds_subtitle">Bipes 3, 2, 1 antes de cada mudança e tons por fase</string>
+    <string name="hiit_vibration_title">Vibração</string>
+    <string name="hiit_vibration_subtitle">Vibra ao mudar de fase e na contagem regressiva: útil com o celular no bolso</string>
     <string name="hiit_indoor_title">Modo interno</string>
     <string name="hiit_indoor_subtitle">Diminui o bipe agudo de «correr» em espaços fechados como a academia</string>
     <string name="hiit_voice_title">Guia por voz</string>
