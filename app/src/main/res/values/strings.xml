@@ -43,19 +43,12 @@
     <string name="hiit_live_steps">%1$s pasos · %2$s</string>
     <string name="hiit_stat_steps">Pasos</string>
     <string name="hiit_stat_distance">Distancia</string>
-    <string name="hiit_session_duration_section">Duración de la sesión</string>
-    <string name="hiit_session_format">%1$s  →  %2$s  ×  %3$d rondas</string>
-    <string name="hiit_session_infinite">%1$s  →  %2$s  ·  Hasta agotarme</string>
-    <string name="hiit_total_format">Total: %1$s (con calentamiento y enfriamiento)</string>
-    <string name="hiit_total_infinite">Sin duración fija: tú decides cuándo parar</string>
     <string name="hiit_sounds_title">Sonidos de cuenta regresiva</string>
     <string name="hiit_sounds_subtitle">Pitidos 3, 2, 1 antes de cada cambio y tonos por fase</string>
     <string name="hiit_indoor_title">Modo interior</string>
     <string name="hiit_indoor_subtitle">Suaviza el pitido agudo de «correr» para espacios cerrados como el gimnasio</string>
     <string name="hiit_voice_title">Guía de voz</string>
     <string name="hiit_voice_subtitle">La app dice «camina» y «corre» en voz alta</string>
-    <string name="hiit_treadmill_title">Caminadora</string>
-    <string name="hiit_treadmill_subtitle">El celular queda fijo: al terminar anotas la distancia que marque la caminadora</string>
     <string name="hiit_treadmill_distance_label">Distancia de la caminadora</string>
     <string name="hiit_treadmill_ask">¿Estás usando una caminadora?</string>
     <string name="hiit_home_subtitle">Entrena por intervalos con guía de voz</string>
@@ -147,21 +140,27 @@
     <string name="perm_banner_title">Permisos desactivados</string>
     <string name="perm_banner_settings">Abrir ajustes</string>
 
-    <!-- Intervalos personalizados (Pro) -->
-    <string name="hiit_custom_profiles">Intervalos personalizados</string>
-    <string name="hiit_custom_profiles_sub">Perfiles Pro con secuencias de intensidades a tu medida</string>
+    <!-- Intervalos avanzados (Pro) -->
+    <string name="hiit_advanced_section">Modo avanzado</string>
+    <string name="hiit_custom_profiles">Intervalos avanzados</string>
+    <string name="hiit_custom_profiles_sub">Crea secuencias de intensidades a tu medida</string>
     <string name="profiles_title">Perfiles personalizados</string>
     <string name="profiles_subtitle">Crea, ordena y ejecuta tus propias secuencias</string>
     <string name="profiles_new">Nuevo perfil</string>
     <string name="profiles_empty_title">Sin perfiles todavía</string>
     <string name="profiles_empty_sub">Crea tu primer perfil y combina intensidades y tiempos libremente.</string>
     <string name="profiles_start_desc">Iniciar sesión con este perfil</string>
+    <string name="profiles_start">Iniciar</string>
+    <string name="profiles_activate">Activar</string>
+    <string name="profiles_active">Activo</string>
+    <string name="profiles_stat_intervals">Intervalos</string>
+    <string name="profiles_stat_reps">Repeticiones</string>
+    <string name="profiles_stat_total">Duración total</string>
     <string name="profiles_mode_line">Modo %1$s</string>
-    <string name="profiles_intervals_count">%1$d intervalos</string>
-    <string name="profiles_reps_line">Se repite ×%1$d</string>
-    <string name="profiles_total_line">Total %1$s</string>
     <string name="profiles_delete_title">¿Eliminar perfil?</string>
     <string name="profiles_delete_message">«%1$s» se eliminará definitivamente.</string>
+    <string name="hiit_active_profile_label">Perfil activo</string>
+    <string name="hiit_active_profile_remove">Dejar de usar este perfil</string>
     <string name="common_delete">Eliminar</string>
     <string name="common_cancel">Cancelar</string>
     <string name="common_edit">Editar</string>

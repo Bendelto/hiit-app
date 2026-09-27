@@ -25,17 +25,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -44,12 +48,15 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hiit.R
 import com.example.hiit.alarm.HiitSession
 import com.example.hiit.alarm.formatDuration
 import com.example.hiit.data.AppSettings
+import com.example.hiit.data.SettingsRepository
+import com.example.hiit.data.parseProfiles
 import kotlinx.coroutines.launch
 
 // ─── Gradiente de la pestaña HIIT ───────────────────────────────────────────
@@ -150,6 +157,10 @@ fun HiitHomeScreen(
 ) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
+    val activeProfile = remember(settings.hiitCustomProfilesJson, settings.hiitActiveProfileId) {
+        parseProfiles(settings.hiitCustomProfilesJson).find { it.id == settings.hiitActiveProfileId }
+    }
+    val repository = remember { SettingsRepository(context) }
 
     Box(
         modifier = Modifier
@@ -191,7 +202,7 @@ fun HiitHomeScreen(
                 letterSpacing = 3.sp,
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Tarjeta de cristal con el resumen de la sesión
             GlassCard {
@@ -199,19 +210,23 @@ fun HiitHomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    // Encabezado centrado: rayo + etiqueta, sin caja
+                    // Encabezado: cambia según el modo activo
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(
-                            Icons.Filled.Bolt,
+                            if (activeProfile != null) Icons.Filled.Star else Icons.Filled.Bolt,
                             contentDescription = null,
                             tint = Mint300,
                             modifier = Modifier.size(18.dp),
                         )
                         Text(
-                            stringResource(R.string.hiit_your_session).uppercase(),
+                            if (activeProfile != null) {
+                                stringResource(R.string.hiit_active_profile_label).uppercase()
+                            } else {
+                                stringResource(R.string.hiit_your_session).uppercase()
+                            },
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
                             color = White70,
@@ -221,103 +236,204 @@ fun HiitHomeScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Resumen grande: la alta intensidad va en menta para destacar.
-                    // Las rondas viven en los cuadros de abajo para no saturar la línea.
-                    val walkText = formatDuration(context, settings.hiitWalkSeconds)
-                    val runText = formatDuration(context, settings.hiitRunSeconds)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (activeProfile != null) {
+                        // Nombre del perfil con botón × para desactivar
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                activeProfile.name,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            IconButton(
+                                onClick = { scope.launch { repository.setActiveProfile("") } },
+                                modifier = Modifier.size(28.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.hiit_active_profile_remove),
+                                    tint = White60,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
                         Text(
-                            walkText,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                        )
-                        Text(
-                            "  →  ",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.Black,
+                            stringResource(
+                                R.string.profiles_mode_line,
+                                profileModeLabel(activeProfile.mode),
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
                             color = White70,
                         )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Cuadros de datos: repeticiones y duración del perfil
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color.White.copy(alpha = 0.06f))
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            StatColumn(
+                                icon = Icons.Filled.Refresh,
+                                label = stringResource(R.string.profiles_stat_reps),
+                                value = stringResource(
+                                    R.string.editor_reps_value,
+                                    activeProfile.repetitions,
+                                ),
+                                modifier = Modifier.weight(1f),
+                            )
+                            StatDivider()
+                            StatColumn(
+                                icon = Icons.Filled.Timer,
+                                label = stringResource(R.string.profiles_stat_total),
+                                value = formatDuration(context, activeProfile.totalSeconds),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            WarmCoolLine(
+                                icon = Icons.Filled.Whatshot,
+                                iconTint = Color(0xFFFF8A65),
+                                text = stringResource(R.string.hiit_warmup) + " · " + (
+                                    if (activeProfile.warmupSeconds > 0) {
+                                        formatDuration(context, activeProfile.warmupSeconds)
+                                    } else {
+                                        "OFF"
+                                    }
+                                    ),
+                            )
+                            WarmCoolLine(
+                                icon = Icons.Filled.AcUnit,
+                                iconTint = Color(0xFF81D4FA),
+                                text = stringResource(R.string.hiit_cooldown) + " · " + (
+                                    if (activeProfile.cooldownSeconds > 0) {
+                                        formatDuration(context, activeProfile.cooldownSeconds)
+                                    } else {
+                                        "OFF"
+                                    }
+                                    ),
+                            )
+                        }
+                    } else {
+                        // Resumen grande: la alta intensidad va en menta para destacar.
+                        // Las rondas viven en los cuadros de abajo para no saturar la línea.
+                        val walkText = formatDuration(context, settings.hiitWalkSeconds)
+                        val runText = formatDuration(context, settings.hiitRunSeconds)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                walkText,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                            )
+                            Text(
+                                "  →  ",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.Black,
+                                color = White70,
+                            )
+                            Text(
+                                runText,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Mint300,
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
                         Text(
-                            runText,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Black,
-                            color = Mint300,
+                            stringResource(R.string.hiit_summary_caption),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = White70,
                         )
-                    }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(
-                        stringResource(R.string.hiit_summary_caption),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = White70,
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Cuadros de datos: rondas y duración
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White.copy(alpha = 0.06f))
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        StatColumn(
-                            icon = Icons.Filled.Refresh,
-                            label = stringResource(R.string.hiit_rounds_label),
-                            value = if (settings.hiitRounds <= 0) {
-                                "∞"
-                            } else {
-                                "${settings.hiitRounds}"
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                        StatDivider()
-                        StatColumn(
-                            icon = Icons.Filled.Timer,
-                            label = stringResource(R.string.hiit_total_label),
-                            value = if (settings.hiitRounds <= 0) {
-                                "∞"
-                            } else {
-                                formatDuration(context, settings.hiitTotalSeconds)
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Calentamiento y enfriamiento, una línea cada uno: los nombres
-                    // son largos y no caben en cuadros estrechos
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        WarmCoolLine(
-                            icon = Icons.Filled.Whatshot,
-                            iconTint = Color(0xFFFF8A65),
-                            text = stringResource(R.string.hiit_warmup) + " · " + (
-                                if (settings.hiitWarmupSeconds > 0) {
-                                    formatDuration(context, settings.hiitWarmupSeconds)
+                        // Cuadros de datos: rondas y duración
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color.White.copy(alpha = 0.06f))
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            StatColumn(
+                                icon = Icons.Filled.Refresh,
+                                label = stringResource(R.string.hiit_rounds_label),
+                                value = if (settings.hiitRounds <= 0) {
+                                    "∞"
                                 } else {
-                                    "OFF"
-                                }
-                                ),
-                        )
-                        WarmCoolLine(
-                            icon = Icons.Filled.AcUnit,
-                            iconTint = Color(0xFF81D4FA),
-                            text = stringResource(R.string.hiit_cooldown) + " · " + (
-                                if (settings.hiitCooldownSeconds > 0) {
-                                    formatDuration(context, settings.hiitCooldownSeconds)
+                                    "${settings.hiitRounds}"
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                            StatDivider()
+                            StatColumn(
+                                icon = Icons.Filled.Timer,
+                                label = stringResource(R.string.hiit_total_label),
+                                value = if (settings.hiitRounds <= 0) {
+                                    "∞"
                                 } else {
-                                    "OFF"
-                                }
-                                ),
-                        )
+                                    formatDuration(context, settings.hiitTotalSeconds)
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Calentamiento y enfriamiento, una línea cada uno: los nombres
+                        // son largos y no caben en cuadros estrechos
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            WarmCoolLine(
+                                icon = Icons.Filled.Whatshot,
+                                iconTint = Color(0xFFFF8A65),
+                                text = stringResource(R.string.hiit_warmup) + " · " + (
+                                    if (settings.hiitWarmupSeconds > 0) {
+                                        formatDuration(context, settings.hiitWarmupSeconds)
+                                    } else {
+                                        "OFF"
+                                    }
+                                    ),
+                            )
+                            WarmCoolLine(
+                                icon = Icons.Filled.AcUnit,
+                                iconTint = Color(0xFF81D4FA),
+                                text = stringResource(R.string.hiit_cooldown) + " · " + (
+                                    if (settings.hiitCooldownSeconds > 0) {
+                                        formatDuration(context, settings.hiitCooldownSeconds)
+                                    } else {
+                                        "OFF"
+                                    }
+                                    ),
+                            )
+                        }
                     }
                 }
             }
@@ -379,14 +495,19 @@ fun HiitHomeScreen(
                     onClick = {
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                         scope.launch {
-                            HiitSession.start(
-                                context,
-                                settings.hiitWalkSeconds,
-                                settings.hiitRunSeconds,
-                                settings.hiitRounds,
-                                settings.hiitWarmupSeconds,
-                                settings.hiitCooldownSeconds,
-                            )
+                            val profile = activeProfile
+                            if (profile != null) {
+                                HiitSession.startCustom(context, profile)
+                            } else {
+                                HiitSession.start(
+                                    context,
+                                    settings.hiitWalkSeconds,
+                                    settings.hiitRunSeconds,
+                                    settings.hiitRounds,
+                                    settings.hiitWarmupSeconds,
+                                    settings.hiitCooldownSeconds,
+                                )
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxSize(),
@@ -402,10 +523,11 @@ fun HiitHomeScreen(
                 }
             }
 
-            if (settings.hiitWarmupSeconds > 0) {
+            val warmupSeconds = activeProfile?.warmupSeconds ?: settings.hiitWarmupSeconds
+            if (warmupSeconds > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    stringResource(R.string.hiit_warmup_note, settings.hiitWarmupSeconds),
+                    stringResource(R.string.hiit_warmup_note, warmupSeconds),
                     style = MaterialTheme.typography.bodySmall,
                     color = White70,
                 )

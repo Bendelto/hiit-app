@@ -137,6 +137,7 @@ object HiitSession {
         val settings = repo.settings.first()
         repo.setSessionPlan(steps)
         repo.setHiitActive(true)
+        repo.setActiveProfile(profile.id)
         // Misma línea de base de pasos que en la sesión clásica
         val stepBaseline = if (
             !settings.hiitTreadmillMode &&

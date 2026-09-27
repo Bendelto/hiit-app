@@ -19,10 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,7 +52,6 @@ import com.example.hiit.alarm.HiitSession
 import com.example.hiit.alarm.formatDuration
 import com.example.hiit.data.AppSettings
 import com.example.hiit.data.IntervalProfile
-import com.example.hiit.data.ProfileMode
 import com.example.hiit.data.SettingsRepository
 import com.example.hiit.data.parseProfiles
 import kotlinx.coroutines.flow.first
@@ -100,7 +101,7 @@ fun ProfilesScreen(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
                 .alpha(if (proUnlocked) 1f else 0.55f),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             if (profiles.isEmpty()) {
                 EmptyProfilesCard(locked = !proUnlocked)
@@ -109,9 +110,18 @@ fun ProfilesScreen(
                     ProfileCard(
                         profile = profile,
                         locked = !proUnlocked,
+                        isActive = settings.hiitActiveProfileId == profile.id,
                         onStart = {
                             requirePro {
                                 scope.launch { HiitSession.startCustom(context, profile) }
+                            }
+                        },
+                        onActivate = {
+                            requirePro {
+                                scope.launch {
+                                    repository.setActiveProfile(profile.id)
+                                    onBack()
+                                }
                             }
                         },
                         onEdit = { requirePro { onEdit(profile.id) } },
@@ -173,6 +183,11 @@ fun ProfilesScreen(
                                 repository.settings.first().hiitCustomProfilesJson,
                             )
                             repository.saveCustomProfiles(current.filterNot { it.id == id })
+                            // Si era el perfil activo de la pantalla principal,
+                            // se deselecciona para volver a la sesión clásica.
+                            if (id == settings.hiitActiveProfileId) {
+                                repository.setActiveProfile("")
+                            }
                         }
                     },
                 ) {
@@ -243,7 +258,9 @@ private fun EmptyProfilesCard(locked: Boolean) {
 private fun ProfileCard(
     profile: IntervalProfile,
     locked: Boolean,
+    isActive: Boolean,
     onStart: () -> Unit,
+    onActivate: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -253,7 +270,7 @@ private fun ProfileCard(
         tonalElevation = 1.dp,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -268,7 +285,7 @@ private fun ProfileCard(
                     Text(
                         stringResource(
                             R.string.profiles_mode_line,
-                            modeLabel(profile.mode),
+                            profileModeLabel(profile.mode),
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
@@ -278,55 +295,99 @@ private fun ProfileCard(
                 if (locked) {
                     ProBadge()
                 } else {
-                    IconButton(onClick = onStart) {
+                    IconButton(onClick = onEdit) {
                         Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = stringResource(R.string.profiles_start_desc),
-                            tint = MaterialTheme.colorScheme.primary,
+                            Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.common_edit),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.common_delete),
+                            tint = MaterialTheme.colorScheme.error,
                         )
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            Spacer(modifier = Modifier.height(14.dp))
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
             ) {
-                ProfileMetaChip(stringResource(R.string.profiles_intervals_count, profile.intervals.size))
-                ProfileMetaChip(stringResource(R.string.profiles_reps_line, profile.repetitions))
-                ProfileMetaChip(
-                    stringResource(
-                        R.string.profiles_total_line,
-                        formatDuration(LocalContext.current, profile.totalSeconds),
-                    ),
-                )
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    ProfileStatRow(
+                        label = stringResource(R.string.profiles_stat_intervals),
+                        value = profile.intervals.size.toString(),
+                    )
+                    ProfileStatRow(
+                        label = stringResource(R.string.profiles_stat_reps),
+                        value = stringResource(R.string.editor_reps_value, profile.repetitions),
+                    )
+                    ProfileStatRow(
+                        label = stringResource(R.string.profiles_stat_total),
+                        value = formatDuration(LocalContext.current, profile.totalSeconds),
+                    )
+                }
             }
             if (!locked) {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(14.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    TextButton(onClick = onEdit) {
+                    Button(
+                        onClick = onStart,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
                         Icon(
-                            Icons.Default.Edit,
+                            Icons.Default.PlayArrow,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(18.dp),
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.common_edit))
-                    }
-                    TextButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            stringResource(R.string.common_delete),
-                            color = MaterialTheme.colorScheme.error,
+                            stringResource(R.string.profiles_start),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 6.dp),
+                        )
+                    }
+                    Button(
+                        onClick = onActivate,
+                        modifier = Modifier.weight(1f),
+                        enabled = !isActive,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = if (isActive) {
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                contentColor = MaterialTheme.colorScheme.primary,
+                                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                disabledContentColor = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
+                        },
+                    ) {
+                        Icon(
+                            if (isActive) Icons.Default.Check else Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            stringResource(
+                                if (isActive) R.string.profiles_active else R.string.profiles_activate,
+                            ),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 6.dp),
                         )
                     }
                 }
@@ -336,25 +397,25 @@ private fun ProfileCard(
 }
 
 @Composable
-private fun ProfileMetaChip(text: String) {
-    Surface(
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+private fun ProfileStatRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text,
-            style = MaterialTheme.typography.labelMedium,
+            label,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
 
-@Composable
-private fun modeLabel(mode: ProfileMode): String = stringResource(
-    when (mode) {
-        ProfileMode.SEQUENCE -> R.string.profile_mode_sequence
-        ProfileMode.LADDER -> R.string.profile_mode_ladder
-        ProfileMode.RANDOM -> R.string.profile_mode_random
-    },
-)

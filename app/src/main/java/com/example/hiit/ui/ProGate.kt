@@ -1,7 +1,6 @@
 package com.example.hiit.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,8 +41,8 @@ import com.example.hiit.data.IntervalIntensity
 /** Color distintivo de cada nivel de intensidad (escala del esfuerzo). */
 fun intensityColor(intensity: IntervalIntensity): Color = when (intensity) {
     IntervalIntensity.WALK -> Color(0xFF12B277)
-    IntervalIntensity.JOG -> Color(0xFFF97316)
-    IntervalIntensity.RUN -> Color(0xFFE53935)
+    IntervalIntensity.JOG -> Color(0xFFFFC400)
+    IntervalIntensity.RUN -> Color(0xFFE64A19)
 }
 
 /** Nombre visible de cada nivel de intensidad. */
@@ -76,12 +74,16 @@ private fun rememberSecretTap(onUnlock: () -> Unit): () -> Unit {
     }
 }
 
-/** Sello dorado pequeño para marcar funciones exclusivas de la versión Pro. */
+/** Sello premium compacto para marcar funciones exclusivas de la versión Pro.
+ *  Diseño: pastilla monocroma plana (claro sobre oscuro, colores inversos del
+ *  tema), sin degradados, bordes brillantes ni sombras: minimalista y moderno. */
 @Composable
 fun ProBadge(onSecretTaps: (() -> Unit)? = null) {
     val tapHandler = onSecretTaps?.let { rememberSecretTap(it) }
+    val shape = RoundedCornerShape(percent = 50)
     Box(
         modifier = Modifier
+            .background(MaterialTheme.colorScheme.inverseSurface, shape)
             .then(
                 if (tapHandler != null) {
                     Modifier.clickable(onClick = tapHandler)
@@ -89,36 +91,27 @@ fun ProBadge(onSecretTaps: (() -> Unit)? = null) {
                     Modifier
                 },
             )
-            .border(
-                1.dp,
-                Color(0xFFFFD54F).copy(alpha = 0.6f),
-                RoundedCornerShape(50),
-            )
-            .background(
-                Brush.horizontalGradient(
-                    listOf(Color(0xFFB8860B), Color(0xFFFFD54F)),
-                ),
-                RoundedCornerShape(50),
-            )
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .padding(horizontal = 9.dp, vertical = 3.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
             Icon(
-                Icons.Default.Star,
+                Icons.Default.WorkspacePremium,
                 contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(10.dp),
+                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                modifier = Modifier.size(11.dp),
             )
             Spacer(modifier = Modifier.width(3.dp))
             Text(
                 stringResource(R.string.pro_badge),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
                 fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.8.sp,
+                maxLines = 1,
+                softWrap = false,
             )
         }
     }
@@ -141,7 +134,7 @@ fun ProLockedDialog(onDismiss: () -> Unit, onUnlock: () -> Unit = {}) {
                     .size(48.dp)
                     .clickable(onClick = tapHandler)
                     .background(
-                        Color(0xFFFFD54F).copy(alpha = 0.15f),
+                        MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.12f),
                         CircleShape,
                     ),
                 contentAlignment = Alignment.Center,
@@ -149,7 +142,7 @@ fun ProLockedDialog(onDismiss: () -> Unit, onUnlock: () -> Unit = {}) {
                 Icon(
                     Icons.Default.Lock,
                     contentDescription = null,
-                    tint = Color(0xFFB8860B),
+                    tint = MaterialTheme.colorScheme.inverseSurface,
                 )
             }
         },

@@ -81,9 +81,9 @@ import kotlinx.coroutines.launch
 
 // ─── Gradientes para el workout ─────────────────────────────────────────────
 
-// Fuego para la alta intensidad: rojo profundo → rojo vivo
+// Fuego para la alta intensidad: rojo profundo → naranja fuego → ámbar
 private val RunGradient = Brush.verticalGradient(
-    listOf(Color(0xFF8E0000), Color(0xFFB71C1C), Color(0xFFE53935)),
+    listOf(Color(0xFFB71C1C), Color(0xFFE64A19), Color(0xFFFF8F00)),
 )
 private val WalkGradient = Brush.verticalGradient(
     // Green500 arriba, como la pantalla de sesión completada: la menta se
@@ -96,9 +96,9 @@ private val PrepGradient = Brush.verticalGradient(
 private val CooldownGradient = Brush.verticalGradient(
     listOf(Aqua500, Green700),
 )
-// Trote: naranja → naranja profundo (entre caminata y carrera)
+// Trote: amarillo claro → amarillo dorado (fresco, sin verde oliva ni naranja)
 private val JogGradient = Brush.verticalGradient(
-    listOf(Color(0xFFF97316), Color(0xFFD84315)),
+    listOf(Color(0xFFFDD835), Color(0xFFFFB300)),
 )
 
 // Si en la primera caminata el sensor registra menos pasos que esto, se asume
@@ -220,23 +220,23 @@ fun HiitWorkoutScreen(
     // Colores del anillo
     val arcColorStart = when {
         isPrep -> Blue300
-        isJog -> Color(0xFFFFB74D)
-        isRun -> Color(0xFFEF5350)
+        isJog -> Color(0xFFFFEE58)
+        isRun -> Color(0xFFFFCA28)
         isCooldown -> Blue300
         else -> Mint300
     }
     val arcColorEnd = when {
         isPrep -> Blue500
-        isJog -> Color(0xFFF57C00)
-        isRun -> Color(0xFFB71C1C)
+        isJog -> Color(0xFFFFC400)
+        isRun -> Color(0xFFFF6D00)
         isCooldown -> Green700
         else -> Mint500
     }
     val trackColor = Color.White.copy(alpha = 0.12f)
     val glowColor = when {
         isPrep -> Blue300.copy(alpha = 0.3f)
-        isJog -> Color(0xFFFF9800).copy(alpha = 0.35f)
-        isRun -> Color(0xFFE53935).copy(alpha = 0.4f)
+        isJog -> Color(0xFFFFEB3B).copy(alpha = 0.35f)
+        isRun -> Color(0xFFFF8F00).copy(alpha = 0.35f)
         isCooldown -> Blue300.copy(alpha = 0.3f)
         else -> Mint300.copy(alpha = 0.3f)
     }

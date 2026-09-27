@@ -71,6 +71,8 @@ data class AppSettings(
     val hiitPlanJson: String = "",
     // Índice (0-based) del siguiente paso del plan; el paso en curso es el anterior.
     val hiitPlanIndex: Int = 0,
+    // Perfil personalizado seleccionado en la pantalla principal; "" = sesión clásica
+    val hiitActiveProfileId: String = "",
 ) {
     // Duración estimada de la sesión. Con rondas infinitas (0) solo cuenta
     // calentamiento y enfriamiento: la sesión dura lo que aguante el usuario.
@@ -116,6 +118,7 @@ class SettingsRepository(private val context: Context) {
         val HIIT_CUSTOM_PROFILES = stringPreferencesKey("hiit_custom_profiles")
         val HIIT_PLAN_JSON = stringPreferencesKey("hiit_plan_json")
         val HIIT_PLAN_INDEX = intPreferencesKey("hiit_plan_index")
+        val HIIT_ACTIVE_PROFILE = stringPreferencesKey("hiit_active_profile")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -152,6 +155,7 @@ class SettingsRepository(private val context: Context) {
             hiitCustomProfilesJson = prefs[Keys.HIIT_CUSTOM_PROFILES] ?: "",
             hiitPlanJson = prefs[Keys.HIIT_PLAN_JSON] ?: "",
             hiitPlanIndex = prefs[Keys.HIIT_PLAN_INDEX] ?: 0,
+            hiitActiveProfileId = prefs[Keys.HIIT_ACTIVE_PROFILE] ?: "",
         )
     }
 
@@ -316,6 +320,13 @@ class SettingsRepository(private val context: Context) {
     suspend fun setPlanIndex(index: Int) {
         context.dataStore.edit { prefs ->
             prefs[Keys.HIIT_PLAN_INDEX] = index
+        }
+    }
+
+    /** Selecciona (o deselecciona con "") el perfil activo de la pantalla principal. */
+    suspend fun setActiveProfile(id: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIIT_ACTIVE_PROFILE] = id
         }
     }
 

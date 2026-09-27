@@ -1,6 +1,7 @@
 package com.example.hiit.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +49,9 @@ import com.example.hiit.data.AppSettings
 import com.example.hiit.data.SettingsRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
+// El acento claro de la tarjeta Pro sale de los colores inversos del tema,
+// coherentes con el sello ProBadge monocromo.
 
 /** Ajustes de la sesión HIIT: cada fila abre la hoja de ruedas y guarda al aceptar. */
 @Composable
@@ -147,70 +151,97 @@ fun HiitConfigScreen(
                 },
                 onClick = { openSheet = HiitSheet.COOLDOWN },
             )
+        }
 
-            // Intervalos personalizados (función Pro): la pantalla destino
-            // gestiona el candado si la versión Pro no está desbloqueada.
+        // ── Intervalos avanzados (Pro) ───────────────────────────────────
+        // Separado del bloque básico con su propia sección y tarjeta
+        // destacada con borde sutil claro para comunicar que es premium.
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+            SectionTitle(stringResource(R.string.hiit_advanced_section))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.16f),
+                        RoundedCornerShape(20.dp),
+                    )
                     .clickable(onClick = onCustomProfiles),
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Box {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.10f),
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Default.Timeline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.inverseSurface,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 36.dp),
+                        ) {
+                            Text(
+                                stringResource(R.string.hiit_custom_profiles),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                stringResource(R.string.hiit_custom_profiles_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(
+                            Icons.AutoMirrored.Default.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    // ProBadge flotante en la esquina superior derecha.
+                    // 5 toques seguidos sobre el sello alternan el bloqueo Pro
+                    // (método oculto de pruebas).
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f)),
-                        contentAlignment = Alignment.Center,
+                            .align(Alignment.TopEnd)
+                            .padding(top = 10.dp, end = 12.dp),
                     ) {
-                        Icon(
-                            Icons.Default.Timeline,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.size(20.dp),
+                        ProBadge(
+                            onSecretTaps = {
+                                scope.launch {
+                                    repository.setProUnlocked(!settings.hiitProUnlocked)
+                                }
+                            },
                         )
                     }
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.hiit_custom_profiles),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            softWrap = false,
-                        )
-                        Text(
-                            stringResource(R.string.hiit_custom_profiles_sub),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            softWrap = false,
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                    // 5 toques seguidos sobre el sello alternan el bloqueo Pro
-                    // (método oculto de pruebas hasta que llegue el billing).
-                    ProBadge(
-                        onSecretTaps = {
-                            scope.launch {
-                                repository.setProUnlocked(!settings.hiitProUnlocked)
-                            }
-                        },
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        Icons.AutoMirrored.Default.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
             }
         }
@@ -223,48 +254,6 @@ fun HiitConfigScreen(
 
             PremiumCard {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CardSectionTitle(stringResource(R.string.hiit_session_duration_section))
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                if (settings.hiitRounds <= 0) {
-                                    stringResource(
-                                        R.string.hiit_session_infinite,
-                                        formatDuration(context, settings.hiitWalkSeconds),
-                                        formatDuration(context, settings.hiitRunSeconds),
-                                    )
-                                } else {
-                                    stringResource(
-                                        R.string.hiit_session_format,
-                                        formatDuration(context, settings.hiitWalkSeconds),
-                                        formatDuration(context, settings.hiitRunSeconds),
-                                        settings.hiitRounds,
-                                    )
-                                },
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                stringResource(
-                                    if (settings.hiitRounds <= 0) {
-                                        R.string.hiit_total_infinite
-                                    } else {
-                                        R.string.hiit_total_format
-                                    },
-                                    formatDuration(context, settings.hiitTotalSeconds),
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
                     ActivationSwitch(
                         title = stringResource(R.string.hiit_sounds_title),
                         subtitle = stringResource(R.string.hiit_sounds_subtitle),
@@ -284,12 +273,6 @@ fun HiitConfigScreen(
                         subtitle = stringResource(R.string.hiit_voice_subtitle),
                         checked = settings.hiitVoice,
                         onChange = { scope.launch { repository.setHiitVoice(it) } },
-                    )
-                    ActivationSwitch(
-                        title = stringResource(R.string.hiit_treadmill_title),
-                        subtitle = stringResource(R.string.hiit_treadmill_subtitle),
-                        checked = settings.hiitTreadmillMode,
-                        onChange = { scope.launch { repository.setHiitTreadmillMode(it) } },
                     )
                 }
             }

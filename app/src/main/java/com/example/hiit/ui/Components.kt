@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hiit.R
+import com.example.hiit.data.ProfileMode
 
 // ─── Cristal compartido (pantallas inmersivas sobre degradados) ─────────────
 
@@ -135,31 +136,6 @@ fun SectionTitle(text: String) {
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             letterSpacing = 1.2.sp,
-        )
-    }
-}
-
-/** Título de subsección dentro de una tarjeta: barra de acento vertical en
- *  lugar de la pastilla degradada, para que no compita con [SectionTitle]. */
-@Composable
-fun CardSectionTitle(text: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .width(3.dp)
-                .height(16.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(MaterialTheme.colorScheme.primary),
-        )
-        Text(
-            text.uppercase(),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-            letterSpacing = 1.sp,
         )
     }
 }
@@ -733,3 +709,13 @@ fun PermissionWarningBanner(
         }
     }
 }
+
+/** Nombre visible de cada modo de ejecución de un perfil personalizado. */
+@Composable
+fun profileModeLabel(mode: ProfileMode): String = stringResource(
+    when (mode) {
+        ProfileMode.SEQUENCE -> R.string.profile_mode_sequence
+        ProfileMode.LADDER -> R.string.profile_mode_ladder
+        ProfileMode.RANDOM -> R.string.profile_mode_random
+    },
+)
